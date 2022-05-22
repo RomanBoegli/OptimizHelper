@@ -301,6 +301,31 @@ def dijkstra(csvfile, fromnode):
     click.echo("\n".join(table))
 
 
+@main.command()
+@click.argument('csvfile')
+@click.argument('fromnode')
+@click.argument('style')
+def traverse(csvfile, fromnode, style):
+    """Traverses graph either breadth-first (style='bf') or depth-first (style='df')."""
+    G = __get_graph_from_adjacency_matrix(csvfile)
+    if style == 'bf':
+        edges = nx.bfs_edges(G, fromnode)
+    else:
+        edges = nx.dfs_edges(G, fromnode)
+        nodes_dfs = list(nx.dfs_postorder_nodes(G, fromnode))
+    results = []
+    i = 0
+    nodes = [fromnode]
+    for e in list(edges):
+        results.append([i, e[0], e[1]])
+        nodes.append(e[1])
+        i += 1
+    table = [tabulate(results, headers=["Step", "From", "To"], tablefmt="simple")]
+    if style == 'df':
+        nodes = nodes_dfs
+    click.echo("\n".join(table) + "\nEncounter Order: " + " → ".join(nodes))
+
+
 def __convert_to_float(frac_str):
     try:
         if frac_str.__contains__('^'):

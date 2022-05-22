@@ -36,7 +36,8 @@ Commands:
   hessian          Returns Hessian Matrix 'H' of given function.
   mst              Returns the minimum spanning tree.
   newton           Applies one step of Newton's method.
-  succhalv    Applies one step of Gradient method with successive halving and parabola fitting.
+  succhalv         Applies one step of Gradient method with successive halving and parabola fitting.
+  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df').
 ````
 
 </br>
@@ -225,3 +226,19 @@ $ python3 main.py dijkstra adjmat.csv A
   5  A       D     ['A', 'E', 'D']
 ```
 
+Traverse a graph either breadth-first or dept-first.
+```console
+$ python3 main.py traverse adjmat.csv bf
+  Step  From    To
+------  ------  ----
+     0  A       B
+     1  A       C
+     2  A       E
+     3  A       F
+     4  B       D
+Encounter Order: A → B → C → E → F → D
+
+$ python3 main.py traverse adjmat.csv df
+...
+Encounter Order: E → D → F → C → B → A
+```
