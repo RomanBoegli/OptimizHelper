@@ -29,10 +29,12 @@ Commands:
   diff             Passes a question to WolframAlpha and returns the answer.
   diffbeauty       Returns the derivative in pretty form.
   difftree         Returns all partial derivatives as a tree.
+  dijkstra         All shortest paths to all other nodes from given starting node.
   evaluate         Evaluates a function with a given substitution.
   gradient         Returns the gradient of the given function.
   graphfromadjmat  Plots a graph based on provided adjacency matrix.
   hessian          Returns Hessian Matrix 'H' of given function.
+  mst              Returns the minimum spanning tree.
   newton           Applies one step of Newton's method.
   succhalv    Applies one step of Gradient method with successive halving and parabola fitting.
 ````
@@ -172,21 +174,54 @@ $ python3 main.py aitken "100,10,2,0.5"
 
 ## Graph and Network Optimization
 
-Plotting a graph based on a adjacency matrix.
-
+Plotting a graph based on an adjacency matrix. When no edge is shared, enter `0` weight. See example below.
 ```console
-$ fancyprint "./adjmat.csv"
-  Brugg    Basel    Bern    Chur    Geneva          
- -------- -------- ------- ------- --------- ------ 
-  Brugg    0        58      101     149       250   
-  Basel    58       0       93      198       243   
-  Bern     101      93      0       237       156   
-  Chur     149      198     237     0         386   
-  Geneva   250      243     156     386       0 
+$ cat adjmat.csv
+Attribute,Brugg,Basel,Bern,Chur,Geneva
+Brugg,0,58,101,149,250
+Basel,58,0,93,198,243
+Bern,101,93,0,237,156
+Chur,149,198,237,0,386
+Geneva,250,243,156,386,0
 
 $ python3 main.py graphfromadjmat "./adjmat.csv"
 result saved as: ./graphfromadjmat-result.html
 ```
-
 <img width="300" alt="graph" src="https://user-images.githubusercontent.com/22320200/169700662-8fcb5f66-0513-4254-b1b4-bd8cd282325f.png">
+
+
+Return minimum spanning tree.
+```console
+$ cat adjmat.csv
+Attribute,A,B,C,D,E,F
+A,0,200,580,0,250,1200
+B,200,0,500,820,0,0
+C,580,500,0,230,150,1100
+D,0,820,230,0,380,0
+E,250,0,150,380,0,0
+F,1200,0,1100,0,0,0
+
+$ python3 main.py mst adjmat.csv
+From    To      Weight
+------  ----  --------
+A       B          200
+A       E          250
+C       D          230
+C       E          150
+C       F         1100
+----    SUM:      1930
+```
+
+Get the shortest paths from a given node to all other nodes.
+```console
+$ python3 main.py dijkstra adjmat.csv A
+  #  From    To     Shortest Path
+---  ------  ----  ----------------
+  0  A       A     ['A']
+  1  A       B     ['A', 'B']
+  2  A       C     ['A', 'E', 'C']
+  3  A       E     ['A', 'E']
+  4  A       F     ['A', 'F']
+  5  A       D     ['A', 'E', 'D']
+```
 

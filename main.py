@@ -244,25 +244,24 @@ def aitken(valueseq):
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
 def graphfromadjmat(csvfile, format):
     """Plots a graph based on provided adjacency matrix."""
-    input_data = pd.read_csv(csvfile, index_col=0)
-    G = nx.Graph(input_data.values)
+    G = __get_graph_from_adjacency_matrix(csvfile)
     with open(csvfile, 'r') as f:
         d_reader = csv.DictReader(f)
         headers = d_reader.fieldnames
-    labels = __make_label_dict(headers)
+    labels = __make_label_dict(headers[1:])
     edge_labels = dict(((u, v), d["weight"]) for u, v, d in G.edges(data=True))
     pos = nx.spring_layout(G, k=(5 / (G.order()**(1/2))), iterations=20, scale=5)
     nx.draw(G, pos)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-    nx.draw(G, pos, node_size=500, labels=labels, with_labels=True)
+    nx.draw(G, pos, node_size=500, with_labels=True)
     N = Network(height='75%', width='100%')
-    N.barnes_hut()
+    N.force_atlas_2based()
     i = 0
     for n in G.nodes:
-        N.add_node(int(n), label=labels[i])
+        N.add_node(n, label=labels[i])
         i += 1
     for e in G.edges.data("weight", default=1):
-        N.add_edge(int(e[0]), int(e[1]), title=e[2], value=e[2], width=e[2])
+        N.add_edge(e[0], e[1], title=e[2], value=e[2], width=e[2])
     N.show_buttons(filter_=["physics"])
     file = './graphfromadjmat-result.'
     if format == 'html':
@@ -273,6 +272,34 @@ def graphfromadjmat(csvfile, format):
         plt.savefig(file, format="PNG")
 
     click.echo("result saved as: " + file)
+
+@main.command()
+@click.argument('csvfile')
+def mst(csvfile):
+    """Returns the minimum spanning tree."""
+    G = __get_graph_from_adjacency_matrix(csvfile)
+    T = nx.minimum_spanning_tree(G)
+    results = []
+    totalweight = 0
+    for e in sorted(T.edges(data=True)):
+        totalweight += e[2]['weight']
+        results.append([e[0], e[1], e[2]['weight']])
+    results.append(["----", "SUM:", totalweight])
+    table = [tabulate(results, headers=["From", "To", "Weight"], tablefmt="simple")]
+    click.echo("\n".join(table))
+
+
+@main.command()
+@click.argument('csvfile')
+@click.argument('fromnode')
+def dijkstra(csvfile, fromnode):
+    """All shortest paths to all other nodes from given starting node."""
+    G = __get_graph_from_adjacency_matrix(csvfile)
+    p = nx.shortest_path(G, source=fromnode, weight='weight')
+    df = pd.DataFrame({'From': fromnode, 'To': p.keys(), 'Shortest Path': p.values()})
+    table = [tabulate(df, headers=["#", "From", "To", " Shortest Path"], tablefmt="simple")]
+    click.echo("\n".join(table))
+
 
 def __convert_to_float(frac_str):
     try:
@@ -342,6 +369,20 @@ def __make_label_dict(labels):
     for i, label in enumerate(labels):
         l[i] = label
     return l
+
+def __get_graph_from_adjacency_matrix(csvfile):
+    # read the first line to determine the number of columns
+    with open(csvfile, 'r') as f:
+        ncols = len(next(f).split(','))
+
+    x = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True, usecols=range(1, ncols))
+    labels = x.dtype.names
+
+    # y is a view of x, so it will not require much additional memory
+    y = x.view(dtype=('int', len(x.dtype)))
+
+    G = nx.from_numpy_matrix(y)
+    return nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
 
 
 if __name__ == "__main__":
