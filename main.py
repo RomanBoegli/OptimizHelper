@@ -15,7 +15,7 @@ config = configparser.ConfigParser()
 config.read('./settings.ini')
 global_client = wolframalpha.Client(config['WOLFRAMALPHA']['APIKEY'])
 
-# ** This code lacks beauty and (probably) is inefficient. I had little time **
+# ** This code lacks beauty and is (most probably) inefficient. I had little time. **
 
 @click.group()
 def main():
@@ -273,6 +273,7 @@ def graphfromadjmat(csvfile, format):
 
     click.echo("result saved as: " + file)
 
+
 @main.command()
 @click.argument('csvfile')
 def mst(csvfile):
@@ -341,10 +342,8 @@ def __convert_to_float(frac_str):
         frac = float(num) / float(denom)
         return whole - frac if whole < 0 else whole + frac
 
-
 def __rstrip_zeros(f):
     return ('%f' % f).rstrip('0').rstrip('.')
-
 
 def __difftree_rec(expression, level=0, functionsuffix='', transform=True, parentNode='root', tree=None):
     if transform:
@@ -366,7 +365,6 @@ def __difftree_rec(expression, level=0, functionsuffix='', transform=True, paren
                            parentNode=id, tree=tree)
     return tree
 
-
 def __get_gradient(function, point, value):
     question = "grad (" + function + ")"
     res = global_client.query(question)
@@ -376,7 +374,6 @@ def __get_gradient(function, point, value):
         res2 = global_client.query("evaluate " + gradient.split("=")[1] + "substitute " + point + " = " + value)
         returnValue = next(res2.results).text
     return returnValue
-
 
 def __get_hessian(function, det):
     if det:
@@ -396,16 +393,11 @@ def __make_label_dict(labels):
     return l
 
 def __get_graph_from_adjacency_matrix(csvfile):
-    # read the first line to determine the number of columns
     with open(csvfile, 'r') as f:
         ncols = len(next(f).split(','))
-
     x = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True, usecols=range(1, ncols))
     labels = x.dtype.names
-
-    # y is a view of x, so it will not require much additional memory
     y = x.view(dtype=('int', len(x.dtype)))
-
     G = nx.from_numpy_matrix(y)
     return nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
 
