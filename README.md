@@ -1,7 +1,7 @@
 # OptimizCalculator
 A tiny command line interface tool for solving (non) integer programming problems.
 
-<img width="700" alt="cli" src="https://user-images.githubusercontent.com/22320200/169147797-e0b679d8-21d0-469f-8954-b749cbed1db2.png">
+<img width="700" alt="cli" src="https://user-images.githubusercontent.com/22320200/169700645-2e05f926-67a8-4354-a012-8c11fc3fc8f8.png">
 
 
 # Prerequisites
@@ -187,4 +187,6 @@ $ fancyprint "./adjmat.csv"
 $ python3 main.py graphfromadjmat "./adjmat.csv"
 result saved as: ./graphfromadjmat-result.html
 ```
+
+<img width="300" alt="graph" src="https://user-images.githubusercontent.com/22320200/169700662-8fcb5f66-0513-4254-b1b4-bd8cd282325f.png">
 
