@@ -242,8 +242,9 @@ def aitken(valueseq):
 
 @main.command()
 @click.argument('csvfile')
+@click.option("--directed", default='False', help="Use 'True' when graph is directed.")
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
-def graphfromadjmat(csvfile, format):
+def drawgraph(csvfile, directed, format):
     """Plots a graph based on provided adjacency matrix."""
     G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
     with open(csvfile, 'r') as f:
@@ -255,16 +256,16 @@ def graphfromadjmat(csvfile, format):
     nx.draw(G, pos)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
     nx.draw(G, pos, node_size=500, with_labels=True)
-    N = Network(height='75%', width='100%')
+    N = Network(height='75%', width='100%', directed=directed)
     N.force_atlas_2based()
     i = 0
     for n in G.nodes:
         N.add_node(n, label=labels[i])
         i += 1
     for e in G.edges.data("weight", default=1):
-        N.add_edge(e[0], e[1], title=e[2], value=e[2], width=e[2])
+        N.add_edge(e[0], e[1], title=e[2], value=e[2], width=e[2], arrowStrikethrough=False)
     N.show_buttons(filter_=["physics"])
-    file = './graphfromadjmat-result.'
+    file = './graph.'
     if format == 'html':
         file = file + 'html'
         N.write_html(file)
@@ -438,5 +439,4 @@ def __floydwarshall_constrained(m, allowed_indexes):
 
 
 if __name__ == "__main__":
-    #main()
-    floydwarshall(["/Users/rbo/Desktop/Ex10Task5.csv"])
+    main()

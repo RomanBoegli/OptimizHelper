@@ -1,5 +1,5 @@
 # OptimizCalculator
-A tiny command line interface tool for solving (non) integer programming problems.
+A tiny command line interface tool for solving (non) integer & network optimization problems.
 
 <img width="700" alt="cli" src="https://user-images.githubusercontent.com/22320200/169700645-2e05f926-67a8-4354-a012-8c11fc3fc8f8.png">
 
@@ -33,7 +33,7 @@ Commands:
   evaluate         Evaluates a function with a given substitution.
   floydwarshall    Returns matrix with shortest distances between all nodes.
   gradient         Returns the gradient of the given function.
-  graphfromadjmat  Plots a graph based on provided adjacency matrix.
+  drawgraph        Plots a graph based on provided adjacency matrix.
   hessian          Returns Hessian Matrix 'H' of given function.
   mst              Returns the minimum spanning tree.
   newton           Applies one step of Newton's method.
@@ -186,10 +186,26 @@ Bern,101,93,0,237,156
 Chur,149,198,237,0,386
 Geneva,250,243,156,386,0
 
-$ python3 main.py graphfromadjmat "./adjmat.csv"
-result saved as: ./graphfromadjmat-result.html
+$ python3 main.py drawgraph "./adjmat.csv"
+result saved as: ./grapht.html
 ```
 <img width="300" alt="graph" src="https://user-images.githubusercontent.com/22320200/169700662-8fcb5f66-0513-4254-b1b4-bd8cd282325f.png">
+
+Or as directed graph.
+```console
+$ cat adjmat2.csv
+Attribute,a,b,c,d,e,f,g
+a,0,1,0,1,0,0,0
+b,0,0,1,0,0,1,0
+c,0,0,0,0,1,0,0
+d,0,1,0,0,0,0,0
+e,0,0,0,0,0,0,1
+f,1,0,0,1,0,0,0
+g,0,0,1,0,0,0,0
+
+$ python3 main.py drawgraph "./adjmat2.csv" --directed
+result saved as: ./grapht.html
+```
 
 
 Return minimum spanning tree.
