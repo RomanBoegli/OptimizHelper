@@ -351,6 +351,53 @@ def floydwarshall(csvfile, onlyuse):
     table = [tabulate(results, headers=headers, tablefmt="simple", stralign="center")]
     click.echo("\n".join(table))
 
+
+@main.command()
+@click.argument('csvfile')
+@click.argument('source')
+@click.argument('target')
+def maxflow(csvfile, source, target):
+    """Finds maximum flow based on provided edge list."""
+    G = __get_graph_from_edge_list(csvfile)
+    maxflow, transactions = nx.maximum_flow(G, source, target, 'capacity')
+    table = [tabulate(np.array(list(transactions.items())), headers=["node", "routed values"], tablefmt="simple")]
+    click.echo("max flow: " + str(maxflow) + "\n" + "\n".join(table))
+
+@main.command()
+@click.argument('csvfile')
+@click.argument('source')
+@click.argument('target')
+@click.option("--adjacency", default=False, help="Node constraints (e.g. 'A, D, F')")
+def mincut(csvfile, source, target, adjacency):
+    """Finds minimum s-t-cut based on provided edge list or adjacency matrix."""
+    if adjacency:
+        G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
+        cut_value, partition = nx.minimum_cut(G, source, target, 'weight')
+    else:
+        G = __get_graph_from_edge_list(csvfile)
+        cut_value, partition = nx.minimum_cut(G, source, target, 'capacity')
+    results = []
+    i = 0
+    for p in list(partition):
+        results.append([i, sorted(p)])
+        i += 1
+    table = [tabulate(results, headers=["#", "partitions"], tablefmt="simple")]
+    click.echo("cut value: " + str(cut_value) + "\n" + "\n".join(table))
+
+
+
+@main.command()
+@click.argument('csvfile')
+def maxmatch(csvfile):
+    """Maximum matchings of a bipartite graph based on provided adjacency matrix."""
+    G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
+    matching = nx.maximal_matching(G)
+    results = []
+    for m in list(matching):
+        results.append([str(m[0]) + " - " + str(m[1])])
+    table = [tabulate(results, headers=["matches"], tablefmt="simple")]
+    click.echo("\n".join(table))
+
 def __convert_to_float(frac_str):
     try:
         if frac_str.__contains__('^'):
@@ -426,6 +473,18 @@ def __get_graph_from_adjacency_matrix(csvfile, filling_values=None):
     G = nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
     return G, y, list(labels)
 
+def __get_graph_from_edge_list(csvfile, directed = True):
+    xs = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True)
+    edges = []
+    for x in xs:
+        edges.append((x[0].decode("utf-8"), x[1].decode("utf-8"), {"capacity": x[2], "weight": x[3]}))
+    if directed:
+        G = nx.DiGraph()
+    else:
+        G = nx.Graph()
+    G.add_edges_from(edges)
+    return G
+
 def __floydwarshall_constrained(m, allowed_indexes):
     n = len(m[1])
     m_old = np.copy(m)
@@ -439,4 +498,4 @@ def __floydwarshall_constrained(m, allowed_indexes):
 
 
 if __name__ == "__main__":
-    main()
+   main()

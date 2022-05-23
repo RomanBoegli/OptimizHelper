@@ -35,6 +35,9 @@ Commands:
   gradient         Returns the gradient of the given function.
   drawgraph        Plots a graph based on provided adjacency matrix.
   hessian          Returns Hessian Matrix 'H' of given function.
+  maxflow          Finds maximum flow based on provided edge list.
+  maxmatch         Maximum matchings of a bipartite graph based on provided adjacency matrix.
+  mincut           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
   mst              Returns the minimum spanning tree.
   newton           Applies one step of Newton's method.
   succhalv         Applies one step of Gradient method with successive halving and parabola fitting.
@@ -285,4 +288,64 @@ C   160  160    0   20  820  320    |      0   -60     0    0  -80  -180
 D   inf  140   20    0  800  300    |    inf     0     0    0    0     0
 E   700  760  820  800    0   40    |      0   760   -80    0    0     0
 F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
+```
+
+
+Maximum flow of a directed graph provided a edge list (weight is irrelevant here).
+```console
+$ cat edges.csv
+from,to,capacity,weight
+s,2,10,0
+s,3,5,0
+s,4,15,0
+2,5,9,0
+2,6,15,0
+2,3,4,0
+3,4,4,0
+3,6,8,0
+4,7,30,0
+5,6,15,0
+5,t,10,0
+6,7,15,0
+6,t,10,0
+7,3,6,0
+7,t,10,0
+
+$ python3 main.py maxflow edges.csv s t
+max flow: 28
+node    routed values
+------  --------------------------
+s       {'2': 10, '3': 5, '4': 13}
+2       {'5': 9, '6': 1, '3': 0}
+3       {'4': 0, '6': 8}
+4       {'7': 13}
+5       {'6': 0, 't': 9}
+6       {'7': 0, 't': 9}
+7       {'3': 3, 't': 10}
+t       {}
+```
+
+Find a minimum s-t-cut based on edge list or adjacency.
+```console
+$ python3 main.py mincut edges.csv s t
+cut value: 28
+---  --------------------
+  0  ['3', '4', '7', 's']
+  1  ['2', '5', '6', 't']
+
+$ python3 main.py mincut adjmat.csv s t --adjacency True
+---  --------------------
+  0  ['3', '4', '7', 's']
+  1  ['2', '5', '6', 't']
+```
+
+Find a maximum matching.
+```console
+$ python3 main.py maxmatch adjmat.csv s t
+matches
+---------
+3 - 4
+7 - t
+s - 2
+5 - 6
 ```
