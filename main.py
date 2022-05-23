@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
+import scipy as sp
 from pyvis.network import Network
 
 config = configparser.ConfigParser()
@@ -244,7 +245,7 @@ def aitken(valueseq):
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
 def graphfromadjmat(csvfile, format):
     """Plots a graph based on provided adjacency matrix."""
-    G = __get_graph_from_adjacency_matrix(csvfile)
+    G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
     with open(csvfile, 'r') as f:
         d_reader = csv.DictReader(f)
         headers = d_reader.fieldnames
@@ -278,7 +279,7 @@ def graphfromadjmat(csvfile, format):
 @click.argument('csvfile')
 def mst(csvfile):
     """Returns the minimum spanning tree."""
-    G = __get_graph_from_adjacency_matrix(csvfile)
+    G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
     T = nx.minimum_spanning_tree(G)
     results = []
     totalweight = 0
@@ -295,10 +296,14 @@ def mst(csvfile):
 @click.argument('fromnode')
 def dijkstra(csvfile, fromnode):
     """All shortest paths to all other nodes from given starting node."""
-    G = __get_graph_from_adjacency_matrix(csvfile)
+    G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
     p = nx.shortest_path(G, source=fromnode, weight='weight')
-    df = pd.DataFrame({'From': fromnode, 'To': p.keys(), 'Shortest Path': p.values()})
-    table = [tabulate(df, headers=["#", "From", "To", " Shortest Path"], tablefmt="simple")]
+    df = pd.DataFrame({'target': p.keys(), 'sp': p.values()})
+    results = []
+    for item in df.get('sp'):
+        k = nx.path_weight(G, item, 'weight')
+        results.append([item, k])
+    table = [tabulate(results, headers=["Shortest Path", "Total Weight"], tablefmt="simple")]
     click.echo("\n".join(table))
 
 
@@ -308,7 +313,7 @@ def dijkstra(csvfile, fromnode):
 @click.argument('style')
 def traverse(csvfile, fromnode, style):
     """Traverses graph either breadth-first (style='bf') or depth-first (style='df')."""
-    G = __get_graph_from_adjacency_matrix(csvfile)
+    G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
     if style == 'bf':
         edges = nx.bfs_edges(G, fromnode)
     else:
@@ -326,6 +331,24 @@ def traverse(csvfile, fromnode, style):
         nodes = nodes_dfs
     click.echo("\n".join(table) + "\nEncounter Order: " + " → ".join(nodes))
 
+
+@main.command()
+@click.argument('csvfile')
+@click.option("--onlyuse", default='all', help="Node constraints (e.g. 'A, D, F')")
+def floydwarshall(csvfile, onlyuse):
+    """Returns matrix with shortest distances between all nodes."""
+    G, m, labels = __get_graph_from_adjacency_matrix(csvfile, filling_values=np.inf)
+    if onlyuse == 'all':
+        #p = nx.floyd_warshall_numpy(G, weight='weight')
+        allowed_indexes = range(np.size(m[0]))
+    else:
+        allowed_indexes = [i for i, x in enumerate(labels) if x in np.char.strip(onlyuse.split(','))]
+
+    p, change = __floydwarshall_constrained(m, allowed_indexes)
+    results = np.c_[list(G.nodes), p, np.repeat(' | ', np.size(m[0])), change]
+    headers = np.hstack((list(G.nodes), [' | '], list(G.nodes)))
+    table = [tabulate(results, headers=headers, tablefmt="simple", stralign="center")]
+    click.echo("\n".join(table))
 
 def __convert_to_float(frac_str):
     try:
@@ -392,15 +415,28 @@ def __make_label_dict(labels):
         l[i] = label
     return l
 
-def __get_graph_from_adjacency_matrix(csvfile):
+def __get_graph_from_adjacency_matrix(csvfile, filling_values=None):
     with open(csvfile, 'r') as f:
         ncols = len(next(f).split(','))
-    x = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True, usecols=range(1, ncols))
+    x = np.genfromtxt(csvfile, delimiter=',', filling_values=filling_values, dtype='float32', names=True, usecols=range(1, ncols))
     labels = x.dtype.names
-    y = x.view(dtype=('int', len(x.dtype)))
+    y = x.view(dtype=('float32', len(x.dtype)))
     G = nx.from_numpy_matrix(y)
-    return nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
+    G = nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
+    return G, y, list(labels)
+
+def __floydwarshall_constrained(m, allowed_indexes):
+    n = len(m[1])
+    m_old = np.copy(m)
+    m_old[np.isinf(m_old)] = 0
+    for k in allowed_indexes:
+        for i in range(n):
+            for j in range(n):
+                m[i, j] = min(m[i, j], m[i, k]+m[k, j])
+    return m, m - m_old
+
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    floydwarshall(["/Users/rbo/Desktop/Ex10Task5.csv"])

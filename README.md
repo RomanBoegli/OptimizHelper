@@ -31,6 +31,7 @@ Commands:
   difftree         Returns all partial derivatives as a tree.
   dijkstra         All shortest paths to all other nodes from given starting node.
   evaluate         Evaluates a function with a given substitution.
+  floydwarshall    Returns matrix with shortest distances between all nodes.
   gradient         Returns the gradient of the given function.
   graphfromadjmat  Plots a graph based on provided adjacency matrix.
   hessian          Returns Hessian Matrix 'H' of given function.
@@ -216,14 +217,14 @@ C       F         1100
 Get the shortest paths from a given node to all other nodes.
 ```console
 $ python3 main.py dijkstra adjmat.csv A
-  #  From    To     Shortest Path
----  ------  ----  ----------------
-  0  A       A     ['A']
-  1  A       B     ['A', 'B']
-  2  A       C     ['A', 'E', 'C']
-  3  A       E     ['A', 'E']
-  4  A       F     ['A', 'F']
-  5  A       D     ['A', 'E', 'D']
+Shortest Path      Total Weight
+---------------  --------------
+['A']                         0
+['A', 'B']                  200
+['A', 'E', 'C']             400
+['A', 'E']                  250
+['A', 'F']                 1200
+['A', 'E', 'D']             630
 ```
 
 Traverse a graph either breadth-first or dept-first.
@@ -241,4 +242,28 @@ Encounter Order: A → B → C → E → F → D
 $ python3 main.py traverse adjmat.csv df
 ...
 Encounter Order: E → D → F → C → B → A
+```
+
+Shortest distances between all nodes using Floyd-Warshall. Right-hand side shows changes.
+```console
+$ python3 main.py floydwarshall adjmat.csv
+      A    B    C    D    E    F    |       A     B     C     D     E     F
+--  ---  ---  ---  ---  ---  ---  -----  ----  ----  ----  ----  ----  ----
+A     0   60  160  180  520  480    |       0     0     0   180  -180  -120
+B    60    0  160  140  480  440    |       0     0   -60     0   480  -360
+C   160  160    0   20  360  320    |       0   -60     0     0  -540  -180
+D   180  140   20    0  340  300    |     180     0     0     0  -460     0
+E   520  480  360  340    0   40    |    -180   480  -540  -460     0     0
+F   480  440  320  300   40    0    |    -120  -360  -180     0     0     0
+
+# constrain intermediate nodes to A and D only:
+$ python3 main.py floydwarshall adjmat.csv --onlyuse "A, D"
+      A    B    C    D    E    F    |      A     B     C    D    E     F
+--  ---  ---  ---  ---  ---  ---  -----  ---  ----  ----  ---  ---  ----
+A     0   60  160  inf  700  600    |      0     0     0  inf    0     0
+B    60    0  160  140  760  440    |      0     0   -60    0  760  -360
+C   160  160    0   20  820  320    |      0   -60     0    0  -80  -180
+D   inf  140   20    0  800  300    |    inf     0     0    0    0     0
+E   700  760  820  800    0   40    |      0   760   -80    0    0     0
+F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
 ```
