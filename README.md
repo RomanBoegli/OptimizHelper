@@ -1,7 +1,7 @@
 # OptimizCalculator
 A tiny command line interface tool for solving (non) integer & network optimization problems.
 
-<img width="700" alt="cli" src="https://user-images.githubusercontent.com/22320200/169700645-2e05f926-67a8-4354-a012-8c11fc3fc8f8.png">
+<img width="750" alt="cli" src="https://user-images.githubusercontent.com/22320200/169897491-c901751b-65cf-4dd3-b61d-d34e10b860dd.png">
 
 
 # Prerequisites
