@@ -359,7 +359,7 @@ def floydwarshall(csvfile, onlyuse):
 def maxflow(csvfile, source, target):
     """Finds maximum flow based on provided edge list."""
     G = __get_graph_from_edge_list(csvfile)
-    maxflow, transactions = nx.maximum_flow(G, source, target, 'capacity')
+    maxflow, transactions = nx.maximum_flow(G, source, target, 'weight')
     table = [tabulate(np.array(list(transactions.items())), headers=["node", "routed values"], tablefmt="simple")]
     click.echo("max flow: " + str(maxflow) + "\n" + "\n".join(table))
 
@@ -372,10 +372,10 @@ def mincut(csvfile, source, target, adjacency):
     """Finds minimum s-t-cut based on provided edge list or adjacency matrix."""
     if adjacency:
         G, _, _ = __get_graph_from_adjacency_matrix(csvfile)
-        cut_value, partition = nx.minimum_cut(G, source, target, 'weight')
+        cut_value, partition = nx.minimum_cut(G, source, target, capacity='weight')
     else:
         G = __get_graph_from_edge_list(csvfile)
-        cut_value, partition = nx.minimum_cut(G, source, target, 'capacity')
+        cut_value, partition = nx.minimum_cut(G, source, target, capacity='weight')
     results = []
     i = 0
     for p in list(partition):
@@ -397,6 +397,20 @@ def maxmatch(csvfile):
         results.append([str(m[0]) + " - " + str(m[1])])
     table = [tabulate(results, headers=["matches"], tablefmt="simple")]
     click.echo("\n".join(table))
+
+
+@main.command()
+@click.argument('csvfile')
+@click.argument('source')
+@click.argument('target')
+def mincostmaxflow(csvfile, source, target):
+    """Returns a maximum s-t flow of minimum cost based on provided edge list."""
+    G = __get_graph_from_edge_list(csvfile)
+    flowDict = nx.max_flow_min_cost(G, source, target, capacity='weight', weight='cost')
+    mincost = nx.cost_of_flow(G, flowDict, weight='cost')
+    table = [tabulate(np.array(list(flowDict.items())), headers=["node", "routed values"], tablefmt="simple")]
+    click.echo("min cost: " + str(mincost) + "\n" +"\n".join(table))
+
 
 def __convert_to_float(frac_str):
     try:
@@ -477,7 +491,7 @@ def __get_graph_from_edge_list(csvfile, directed = True):
     xs = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True)
     edges = []
     for x in xs:
-        edges.append((x[0].decode("utf-8"), x[1].decode("utf-8"), {"capacity": x[2], "weight": x[3]}))
+        edges.append((x[0].decode("utf-8"), x[1].decode("utf-8"), {"weight": x[2], "cost": x[3]}))
     if directed:
         G = nx.DiGraph()
     else:
@@ -494,7 +508,6 @@ def __floydwarshall_constrained(m, allowed_indexes):
             for j in range(n):
                 m[i, j] = min(m[i, j], m[i, k]+m[k, j])
     return m, m - m_old
-
 
 
 if __name__ == "__main__":

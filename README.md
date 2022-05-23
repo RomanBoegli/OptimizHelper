@@ -24,24 +24,25 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  aitken           Returns the Aitken sequence for a value series of at...
-  broyden          Iterating optimization using Broyden's method.
-  diff             Passes a question to WolframAlpha and returns the answer.
-  diffbeauty       Returns the derivative in pretty form.
-  difftree         Returns all partial derivatives as a tree.
-  dijkstra         All shortest paths to all other nodes from given starting node.
-  evaluate         Evaluates a function with a given substitution.
-  floydwarshall    Returns matrix with shortest distances between all nodes.
-  gradient         Returns the gradient of the given function.
-  drawgraph        Plots a graph based on provided adjacency matrix.
-  hessian          Returns Hessian Matrix 'H' of given function.
-  maxflow          Finds maximum flow based on provided edge list.
-  maxmatch         Maximum matchings of a bipartite graph based on provided adjacency matrix.
-  mincut           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
-  mst              Returns the minimum spanning tree.
-  newton           Applies one step of Newton's method.
-  succhalv         Applies one step of Gradient method with successive halving and parabola fitting.
-  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df').
+  aitken          Returns the Aitken sequence for a value series of at...
+  broyden         Iterating optimization using Broyden's method.
+  diff            Passes a question to WolframAlpha and returns the answer.
+  diffbeauty      Returns the derivative in pretty form.
+  difftree        Returns all partial derivatives as a tree.
+  dijkstra        All shortest paths to all other nodes from given...
+  drawgraph       Plots a graph based on provided adjacency matrix.
+  evaluate        Evaluates a function with a given substitution.
+  floydwarshall   Returns matrix with shortest distances between all nodes.
+  gradient        Returns the gradient of the given function.
+  hessian         Returns Hessian Matrix 'H' of given function.
+  maxflow         Finds maximum flow based on provided edge list.
+  maxmatch        Maximum matchings of a bipartite graph based on...
+  mincostmaxflow  Returns a maximum s-t flow of minimum cost based on...
+  mincut          Finds minimum s-t-cut based on provided edge list or...
+  mst             Returns the minimum spanning tree.
+  newton          Applies one step of Newton's method.
+  succhalv        Applies one step of Gradient method with successive...
+  traverse        Traverses graph either breadth-first (style='bf') or...
 ````
 
 </br>
@@ -291,10 +292,10 @@ F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
 ```
 
 
-Maximum flow of a directed graph provided a edge list (weight is irrelevant here).
+Maximum flow of a directed graph provided a edge list (cost is irrelevant here).
 ```console
 $ cat edges.csv
-from,to,capacity,weight
+from,to,weight,cost
 s,2,10,0
 s,3,5,0
 s,4,15,0
@@ -349,3 +350,18 @@ matches
 s - 2
 5 - 6
 ```
+
+Maximum s-t flow of minimum cost based on provided edge list.
+```console
+$ python3 main.py mincostmaxflow edges.csv s t
+min cost: 13
+node    routed values
+------  ----------------
+s       {'b': 0, 'c': 3}
+b       {'d': 1}
+c       {'b': 1, 'e': 2}
+d       {'t': 1}
+e       {'t': 2}
+t       {}
+```
+
