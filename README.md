@@ -187,7 +187,7 @@ Chur,149,198,237,0,386
 Geneva,250,243,156,386,0
 
 $ python3 main.py drawgraph "./adjmat.csv"
-result saved as: ./grapht.html
+result saved as: ./graph.html
 ```
 <img width="300" alt="graph" src="https://user-images.githubusercontent.com/22320200/169700662-8fcb5f66-0513-4254-b1b4-bd8cd282325f.png">
 
@@ -204,8 +204,11 @@ f,1,0,0,1,0,0,0
 g,0,0,1,0,0,0,0
 
 $ python3 main.py drawgraph "./adjmat2.csv" --directed
-result saved as: ./grapht.html
+result saved as: ./graph.html
 ```
+<img width="518" alt="directed" src="https://user-images.githubusercontent.com/22320200/169777745-e81300fb-53c3-47da-9875-6c270953ad9c.png">
+
+
 
 
 Return minimum spanning tree.
