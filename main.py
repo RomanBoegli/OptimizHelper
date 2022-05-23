@@ -408,8 +408,11 @@ def mincostmaxflow(csvfile, source, target):
     G = __get_graph_from_edge_list(csvfile)
     flowDict = nx.max_flow_min_cost(G, source, target, capacity='weight', weight='cost')
     mincost = nx.cost_of_flow(G, flowDict, weight='cost')
+    mincostFlowValue = sum((flowDict[u][target] for u in G.predecessors(target))) - sum((flowDict[target][v] for v in G.successors(target)))
     table = [tabulate(np.array(list(flowDict.items())), headers=["node", "routed values"], tablefmt="simple")]
-    click.echo("min cost: " + str(mincost) + "\n" +"\n".join(table))
+    click.echo("min cost: " + str(mincost) + "\n" +
+               "max flow: " + str(mincostFlowValue) + "\n" +
+               "\n".join(table))
 
 
 def __convert_to_float(frac_str):
@@ -491,7 +494,13 @@ def __get_graph_from_edge_list(csvfile, directed = True):
     xs = np.genfromtxt(csvfile, delimiter=',', dtype=None, names=True)
     edges = []
     for x in xs:
-        edges.append((x[0].decode("utf-8"), x[1].decode("utf-8"), {"weight": x[2], "cost": x[3]}))
+        fnode = x[0]
+        if isinstance(fnode, bytes):
+            fnode = fnode.decode("utf-8")
+        tnode = x[1]
+        if isinstance(tnode, bytes):
+            tnode = tnode.decode("utf-8")
+        edges.append((fnode, tnode, {"weight": x[2], "cost": x[3]}))
     if directed:
         G = nx.DiGraph()
     else:
@@ -511,4 +520,4 @@ def __floydwarshall_constrained(m, allowed_indexes):
 
 
 if __name__ == "__main__":
-   main()
+    main()

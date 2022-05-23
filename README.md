@@ -355,6 +355,7 @@ Maximum s-t flow of minimum cost based on provided edge list.
 ```console
 $ python3 main.py mincostmaxflow edges.csv s t
 min cost: 13
+max flow: 3
 node    routed values
 ------  ----------------
 s       {'b': 0, 'c': 3}
