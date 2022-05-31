@@ -61,7 +61,8 @@ def evaluate(expression, values):
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
-        click.echo('Insufficient amount of values')
+        s = ['', 's'][missing>1]
+        click.echo(f'Missing {missing} value{s}')
         return
     if missing < 0:
         # omit surplus
