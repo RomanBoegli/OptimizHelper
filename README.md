@@ -98,16 +98,23 @@ $ python3 main.py evaluate '2x + y' 4 3
 11.0000000000000
 ```
 
-Receive the gradient vector:
+Receive the gradient vector/matrix.
 ```console
-$ python3 main.py gradient "(x^2-2xy+x)^2"
-grad((x^2 - 2 x y + x)^2) = (2 x (x - 2 y + 1) (2 x - 2 y + 1), -4 x^2 (x - 2 y + 1))
+$ python3 main.py gradient '(x^2-2xy+x)^2'
+[['2x(x - 2y + 1)(2x - 2y + 1)', '4x^2(-x + 2y - 1)']]
+
+$ python3 main.py gradient '(x^2-2xy+x)^2' --pretty
+⎡                                      2               ⎤
+⎣2⋅x⋅(x - 2⋅y + 1)⋅(2⋅x - 2⋅y + 1)  4⋅x ⋅(-x + 2⋅y - 1)⎦
 ```
-Evaluate the gradient of a function at a given point:
+
+Evaluate the gradient of a function at a given point.
 ```console
-$ python3 main.py gradient "(x^2-2xy+x)^2" --point "(x,y)" --value "(2,2)"
-{-4, 16}
+$ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2
+[[-4.00000000000000, 16.0000000000000]]
 ```
+
+---
 
 Receive the Hessian matrix of a given function:
 ```console

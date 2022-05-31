@@ -33,7 +33,7 @@ def main():
 @click.option('--wrt', default='x', help='partial derivative with respect to variable (type \'all\' for all)')
 def diffbeauty(expression, wrt):
     """Returns the derivative in pretty form."""
-    expr = sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
+    expr = hf.str_to_expression(expression)
     results = []
     if wrt == 'all':
         for v in expr.free_symbols:
@@ -55,9 +55,9 @@ def difftree(expression):
 @click.argument('expression')
 @click.argument('values', nargs=-1)
 def evaluate(expression, values):
-    """Evaluates a function with a given substitution."""
-    expr = sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
-    vars = sorted(expr.free_symbols, key=str)
+    """Evaluates a function with a given substitution (assumes alphabetic order)."""
+    expr = hf.str_to_expression(expression)
+    vars = list(sympy.ordered(expr.free_symbols))
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
@@ -72,12 +72,35 @@ def evaluate(expression, values):
 
 
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.option("--point", default=None, help="get gradient at point (x,y, ...)")
-@click.option("--value", default=None, help="the value of the point (e.g. '(2,3)'")
-def gradient(function, point, value):
+@click.argument('expression')
+@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
+@click.option('--pretty', '-p', is_flag=True, help='add to show results prettier')
+def gradient(expression, sub, pretty):
     """Returns the gradient of the given function."""
-    click.echo(hf.__get_gradient(function, point, value))
+    expr = hf.str_to_expression(expression)
+    grad, vars = hf.get_gradient(expr)
+    G = sympy.simplify(grad(expr, vars))
+    if len(sub) > 0:
+        G_eval = []
+        for row in G.tolist():
+            r_eval = []
+            for expr in row:
+                r_eval.append(expr.evalf(subs=dict((v, x) for v, x in sub)))
+            G_eval.append(r_eval)
+        click.echo(print(G_eval))
+        return
+    #u = sympy.hessian(expr, vars)
+    if pretty:
+        click.echo(sympy.pprint(G))
+    else:
+        G_print = []
+        for row in G.tolist():
+            r_print = []
+            for expr in row:
+                k = sympy.sstr(expr).replace('**', '^').replace('*', '')
+                r_print.append(k)
+            G_print.append(r_print)
+        click.echo(print(G_print))
 
 
 @main.command(help_group='Part 2')
@@ -422,3 +445,6 @@ def mincostmaxflow(csvfile, source, target):
 
 if __name__ == "__main__":
     main()
+    #gradient(['(x^2-2xy+x)^2', '-s', 'x', '2',  '-s', 'y', '2'])
+    #gradient(['(x^2-2xy+x)^2', '-s', 'x', '2',  '-s', 'y', '2', '-p'])
+    #gradient(['(x^2-2xy+x)^2'])

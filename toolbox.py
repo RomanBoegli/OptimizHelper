@@ -5,6 +5,14 @@ from treelib import Tree
 import numpy as np
 import networkx as nx
 
+def str_to_expression(expression):
+    return sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
+
+def get_gradient(expr):
+    vars = list(sympy.ordered(expr.free_symbols))
+    gradient = lambda f, v: sympy.Matrix([f]).jacobian(vars)
+    return gradient, vars
+
 def __convert_to_float(frac_str):
     try:
         if frac_str.__contains__('^'):
@@ -25,7 +33,7 @@ def __rstrip_zeros(f):
 
 def __difftree_rec(expression, level=0, functionsuffix='', transform=True, parentNode='root', tree=None):
     if transform:
-        expr = sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
+        expr = str_to_expression(expression)
     else:
         expr = expression
     if level == 0:
