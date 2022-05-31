@@ -18,7 +18,7 @@ Introduction:
 $ python3 main.py --help
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
-  Simple CLI for querying books on Google Books by Oyetoke Toby
+  Simple CLI tool for optimization problems.
 
 Options:
   --help  Show this message and exit.
@@ -47,25 +47,21 @@ Commands:
 
 </br>
 
-## Unconstrained Continuous Optimizations
+## Part 2
 
-Simple first derivative w.r.t. to `x`:
-```console
-$ python3 main.py diff "(x^2-2xy+x)^2" x 1
-d/dx((x^2 - 2 x y + x)^2) = 2 x (x - 2 y + 1) (2 x - 2 y + 1)
-```
+### Unconstrained Continuous Optimizations Problems
 
-Same but more beautifuly printed:
+Differenciate a function once w.r.t. `x` and print beatifuly.
 ```console
-$ python3 main.py diffbeauty "(x^2-2xy+x)^2" --wrt='x'
+$ python3 main.py diffbeauty '(x^2-2xy+x)^2' --wrt=x
 fx:
                 ⎛ 2            ⎞
 (4⋅x - 4⋅y + 2)⋅⎝x  - 2⋅x⋅y + x⎠
 ```
 
-Get complete partial differenciation w.r.t. to all variables:
+Get complete partial differenciation tree w.r.t. all variables.
 ```console
-$ python3 main.py difftree "(x^2-2xy+x)^2"
+$ python3 main.py difftree '(x^2-2xy+x)^2'
 f: (x^2 - 2xy + x)^2
 ├── f1x_: (4x - 4y + 2)(x^2 - 2xy + x)
 │   ├── f2x_x: 4x^2 - 8xy + 4x + (2x - 2y + 1)(4x - 4y + 2)
@@ -93,10 +89,13 @@ f: (x^2 - 2xy + x)^2
             └── f4x_yyx: 16
 ```
 
-Evaluate an expression with given input:
+Evaluate an expression with given input values.
 ```console
-$ python3 main.py evaluate "{2x + y , x/(1+y)}" "(x,y)=(4,1)"
-{9, 2}
+$ python3 main.py evaluate '2^(1/2)'
+1.41421356237310
+
+$ python3 main.py evaluate '2x + y' 4 3
+11.0000000000000
 ```
 
 Receive the gradient vector:

@@ -30,16 +30,16 @@ def main():
 
 @main.command(help_group='Part 2')
 @click.argument('expression')
-@click.option("--wrt", default='x', help="partial derivative with respect to variable (type 'all' for all)")
+@click.option('--wrt', default='x', help='partial derivative with respect to variable (type \'all\' for all)')
 def diffbeauty(expression, wrt):
     """Returns the derivative in pretty form."""
     expr = sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
     results = []
     if wrt == 'all':
         for v in expr.free_symbols:
-            results.append("".join(['f' + str(v), ":\n", sympy.pretty(sympy.diff(expr, v), use_unicode=True)]))
+            results.append(''.join(['f' + str(v), ':\n', sympy.pretty(sympy.diff(expr, v), use_unicode=True)]))
     else:
-        results.append("".join(['f' + wrt, ":\n", sympy.pretty(sympy.diff(expr, wrt), use_unicode=True)]))
+        results.append(''.join(['f' + wrt, ":\n", sympy.pretty(sympy.diff(expr, wrt), use_unicode=True)]))
     click.echo("\n\n".join(results))
 
 
@@ -51,14 +51,23 @@ def difftree(expression):
     click.echo(tree.show())
 
 
-
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.argument('substitution')
-def evaluate(function, substitution):
+@click.argument('expression')
+@click.argument('values', nargs=-1)
+def evaluate(expression, values):
     """Evaluates a function with a given substitution."""
-    res = global_client.query("evaluate " + function + "substitute " + substitution)
-    click.echo(next(res.results).text)
+    expr = sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
+    vars = sorted(expr.free_symbols, key=str)
+    vals = [hf.__convert_to_float(i) for i in list(values)]
+    missing = len(vars) - len(vals)
+    if missing > 0:
+        click.echo('Insufficient amount of values')
+        return
+    if missing < 0:
+        # omit surplus
+        vals = list(vals)[:missing]
+    click.echo(expr.evalf(subs=dict(zip(vars, vals))))
+
 
 
 @main.command(help_group='Part 2')
