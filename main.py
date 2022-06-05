@@ -70,7 +70,6 @@ def evaluate(expression, values):
     click.echo(expr.evalf(subs=dict(zip(vars, vals))))
 
 
-
 @main.command(help_group='Part 2')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
@@ -87,9 +86,11 @@ def gradient(expression, sub, pretty):
             for expr in row:
                 r_eval.append(expr.evalf(subs=dict((v, x) for v, x in sub)))
             G_eval.append(r_eval)
-        click.echo(print(G_eval))
+        if pretty:
+            click.echo(sympy.pprint(G_eval))
+        else:
+            click.echo(np.array(repr(G_eval)))
         return
-    #u = sympy.hessian(expr, vars)
     if pretty:
         click.echo(sympy.pprint(G))
     else:
@@ -100,15 +101,45 @@ def gradient(expression, sub, pretty):
                 k = sympy.sstr(expr).replace('**', '^').replace('*', '')
                 r_print.append(k)
             G_print.append(r_print)
-        click.echo(print(G_print))
+        click.echo(np.array(repr(G_print)))
 
 
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.option("--det", default=False, help="return determinant of hessian matrix (default is False)")
-def hessian(function, det):
+@click.argument('expression')
+@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
+@click.option('--pretty', '-p', is_flag=True, help='pretty print result when not substituted')
+@click.option("--det", is_flag=True, help="return only determinant of hessian matrix")
+def hessian(expression, sub, pretty, det):
     """Returns Hessian Matrix 'H' of given function."""
-    click.echo(hf.__get_hessian(function, det))
+    expr = hf.str_to_expression(expression)
+    grad, vars = hf.get_gradient(expr)
+    H = sympy.simplify(sympy.hessian(expr, vars))
+    if len(sub) > 0:
+        H_eval = H.evalf(subs=dict((v, x) for v, x in sub))
+        if pretty:
+            click.echo(sympy.pprint(H_eval))
+            if det:
+                H_eval_det = H_eval.det().evalf(subs=dict((v, x) for v, x in sub))
+                click.echo(sympy.pprint(H_eval_det))
+        else:
+            click.echo(np.array(H_eval))
+            if det:
+                H_eval_det = H_eval.det().evalf(subs=dict((v, x) for v, x in sub))
+                click.echo(np.array(H_eval_det))
+        return
+    if det:
+        click.echo(sympy.pprint(H.det()))
+    if pretty:
+        click.echo(sympy.pprint(H))
+    else:
+        H_print = []
+        for row in H.tolist():
+            r_print = []
+            for expr in row:
+                k = sympy.sstr(expr).replace('**', '^').replace('*', '')
+                r_print.append(k)
+            H_print.append(r_print)
+        click.echo(np.array(H_print))
 
 
 @main.command(help_group='Part 2')
@@ -125,9 +156,8 @@ def newton(function, substitution):
     gy0 = hf.__convert_to_float(graddres.split(',')[1].replace('{', '').replace('}', ''))
     grad_vec = np.array([gx0, gy0])
     H = hf.__get_hessian(function, False)
-    H_res = next(global_client.query("evaluate " + H + "substitute " + substitution).results).text.replace('(',
-                                                                                                           '').replace(
-        ')', '')
+    H_res = next(global_client.query("evaluate " + H + "substitute " + substitution).results).text\
+        .replace('(','').replace(')', '')
     H_arr_number = []
     for row in [H_res.split('\n')[0].split('|'), H_res.split('\n')[1].split('|')]:
         desired_array = [hf.__convert_to_float(numeric_string) for numeric_string in row]
