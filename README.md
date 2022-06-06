@@ -4,11 +4,9 @@ A tiny command line interface tool for solving (non) integer & network optimizat
 <img width="750" alt="cli" src="https://user-images.githubusercontent.com/22320200/169897491-c901751b-65cf-4dd3-b61d-d34e10b860dd.png">
 
 
-# Prerequisites
+# Setup
 0. Clone this repo.
-1. Login to [WolframAlpha](https://account.wolfram.com/login/oauth2/sign-in) and receive your personal App API key via [MyApps](https://developer.wolframalpha.com/portal/myapps/). Certain commands simply forward the input to WolframAlpha which requires a working internet connection. The free tier allows 2'000 API calls per month.
-2. Paste the key into `settings.ini`.
-3. Open console, navigate to repo, execute `pip install -r requirements.txt`.
+1. Open console, navigate to repo, execute `pip install -r requirements.txt`.
 4. You're ready to go.
 
 # Examples
@@ -18,31 +16,32 @@ Introduction:
 $ python3 main.py --help
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
-  Simple CLI tool for optimization problems.
+  Simple CLI for optimization problems.
 
 Options:
   --help  Show this message and exit.
 
-Commands:
-  aitken          Returns the Aitken sequence for a value series of at...
-  broyden         Iterating optimization using Broyden's method.
-  diff            Passes a question to WolframAlpha and returns the answer.
-  diffbeauty      Returns the derivative in pretty form.
-  difftree        Returns all partial derivatives as a tree.
-  dijkstra        All shortest paths to all other nodes from given...
+Part 2a:
+  aitken      Returns the Aitken sequence for a value series of at leas...
+  broyden     Iterating optimization using Broyden's method.
+  diffbeauty  Returns the derivative in pretty form.
+  difftree    Returns all partial derivatives as a tree.
+  evaluate    Evaluates a function with a given substitution (assumes a...
+  gradient    Returns the gradient of the given function.
+  hessian     Returns Hessian matrix or its determinant of a given func...
+  newton      Applies one step of Newton's method.
+  succhalv    Applies one step of Gradient method with successive halvi...
+
+Part 2b:
+  dijkstra        All shortest paths to all other nodes from given starting...
   drawgraph       Plots a graph based on provided adjacency matrix.
-  evaluate        Evaluates a function with a given substitution.
   floydwarshall   Returns matrix with shortest distances between all nodes.
-  gradient        Returns the gradient of the given function.
-  hessian         Returns Hessian Matrix 'H' of given function.
   maxflow         Finds maximum flow based on provided edge list.
-  maxmatch        Maximum matchings of a bipartite graph based on...
-  mincostmaxflow  Returns a maximum s-t flow of minimum cost based on...
-  mincut          Finds minimum s-t-cut based on provided edge list or...
+  maxmatch        Maximum matchings of a bipartite graph based on provided...
+  mincostmaxflow  Returns a maximum s-t flow of minimum cost based on provi...
+  mincut          Finds minimum s-t-cut based on provided edge list or adja...
   mst             Returns the minimum spanning tree.
-  newton          Applies one step of Newton's method.
-  succhalv        Applies one step of Gradient method with successive...
-  traverse        Traverses graph either breadth-first (style='bf') or...
+  traverse        Traverses graph either breadth-first (style='bf') or dept..
 ````
 
 </br>

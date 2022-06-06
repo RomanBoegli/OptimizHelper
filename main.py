@@ -8,9 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
-import scipy as sp
 from pyvis.network import Network
-
 
 # ** This code lacks beauty and is (most probably) inefficient. I had little time. **
 
@@ -22,7 +20,7 @@ def main():
     pass
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.option('--wrt', default='x', help='partial derivative with respect to variable (type \'all\' for all)')
 def diffbeauty(expression, wrt):
@@ -37,7 +35,7 @@ def diffbeauty(expression, wrt):
     click.echo("\n\n".join(results))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 def difftree(expression):
     """Returns all partial derivatives as a tree."""
@@ -45,7 +43,7 @@ def difftree(expression):
     click.echo(tree.show())
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.argument('values', nargs=-1)
 def evaluate(expression, values):
@@ -65,7 +63,7 @@ def evaluate(expression, values):
     click.echo(sympy.nsimplify(r, tolerance=1e-10, rational=True))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
@@ -90,7 +88,7 @@ def gradient(expression, sub, pretty):
         click.echo(np.array(repr(G_print)))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
@@ -125,7 +123,7 @@ def hessian(expression, sub, pretty, det):
             click.echo(np.array(repr(H_print)))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
@@ -155,7 +153,7 @@ def newton(expression, sub, pretty):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.argument('values', nargs=-1)
 def succhalv(expression, values):
@@ -211,7 +209,7 @@ def succhalv(expression, values):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.argument('values', nargs=-1)
 @click.option('--steps', '-s', default=3, type=int, help='amount of steps')
@@ -281,7 +279,7 @@ def broyden(expression, values, steps, pretty, rational):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2a', short_help='asdf')
 @click.argument('valueseq')
 def aitken(valueseq):
     """Returns the Aitken sequence for a value series of at least 3."""
@@ -306,7 +304,7 @@ def aitken(valueseq):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.option("--directed", default='False', help="Use 'True' when graph is directed.")
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
@@ -342,7 +340,7 @@ def drawgraph(csvfile, directed, format):
     click.echo("result saved as: " + file)
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 def mst(csvfile):
     """Returns the minimum spanning tree."""
@@ -358,7 +356,7 @@ def mst(csvfile):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.argument('fromnode')
 def dijkstra(csvfile, fromnode):
@@ -374,7 +372,7 @@ def dijkstra(csvfile, fromnode):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.argument('fromnode')
 @click.argument('style')
@@ -399,7 +397,7 @@ def traverse(csvfile, fromnode, style):
     click.echo("\n".join(table) + "\nEncounter Order: " + " → ".join(nodes))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.option("--onlyuse", default='all', help="Node constraints (e.g. 'A, D, F')")
 def floydwarshall(csvfile, onlyuse):
@@ -418,7 +416,7 @@ def floydwarshall(csvfile, onlyuse):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.argument('source')
 @click.argument('target')
@@ -430,7 +428,7 @@ def maxflow(csvfile, source, target):
     click.echo("max flow: " + str(maxflowval) + "\n" + "\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.argument('source')
 @click.argument('target')
@@ -453,7 +451,7 @@ def mincut(csvfile, source, target, adjacency):
 
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 def maxmatch(csvfile):
     """Maximum matchings of a bipartite graph based on provided adjacency matrix."""
@@ -466,7 +464,7 @@ def maxmatch(csvfile):
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2')
+@main.command(help_group='Part 2b')
 @click.argument('csvfile')
 @click.argument('source')
 @click.argument('target')
@@ -480,7 +478,6 @@ def mincostmaxflow(csvfile, source, target):
     click.echo("min cost: " + str(mincost) + "\n" +
                "max flow: " + str(mincostFlowValue) + "\n" +
                "\n".join(table))
-
 
 
 if __name__ == "__main__":

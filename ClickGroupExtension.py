@@ -33,7 +33,10 @@ class SectionedHelpGroup(click.Group):
                 cmd = self.get_command(ctx, subcommand)
                 if cmd is None or cmd.help_group != group:
                     continue
-                rows.append((subcommand, cmd.short_help or ''))
+                help = cmd.get_help(ctx).split('\n\n')[1].strip() or ''
+                if len(help) > 57:
+                    help = help[:57].strip() + "..."
+                rows.append((subcommand, help))
 
             if rows:
                 with formatter.section(group):
