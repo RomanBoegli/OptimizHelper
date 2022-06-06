@@ -172,6 +172,11 @@ B*   0.05    (1.6, 0)         2.5856  -
 One iteration from a given point to a next better point using Newton's method:
 ```console
 $ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2
+a=(x0, y0)    H                   b=H^(-1)                c=∇f(x0, y0)    a-bc=(x1, y1)
+------------  ------------------  ----------------------  --------------  ---------------
+[[2], [2]]    [[-6, 0], [0, 32]]  [[-1/6, 0], [0, 1/32]]  [[-4, 16]]      [[4/3], [3/2]]
+
+$ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
 a=(x0, y0)    H         b=H^(-1)      c=∇f(x0, y0)    a-bc=(x1, y1)
 ------------  --------  ------------  --------------  ---------------
 ⎡2⎤           ⎡-6  0 ⎤  ⎡-1/6   0  ⎤  [-4  16]        ⎡4/3⎤

@@ -73,7 +73,7 @@ def evaluate(expression, values):
 
 @main.command(help_group='Part 2')
 @click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
+@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
 def gradient(expression, sub, pretty):
     """Returns the gradient of the given function."""
@@ -98,7 +98,7 @@ def gradient(expression, sub, pretty):
 
 @main.command(help_group='Part 2')
 @click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
+@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
 @click.option('--det', '-d', is_flag=True, help="return only determinant of hessian matrix")
 def hessian(expression, sub, pretty, det):
@@ -133,8 +133,9 @@ def hessian(expression, sub, pretty, det):
 
 @main.command(help_group='Part 2')
 @click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
-def newton(expression, sub):
+@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+def newton(expression, sub, pretty):
     """Applies one step of Newton's method."""
     expr = hf.str_to_expression(expression)
     subdict = dict((v, x) for v, x in sub)
@@ -146,11 +147,16 @@ def newton(expression, sub):
     H = H.evalf(subs=dict((v, x) for v, x in sub))
     H_inv = H.inv()
     new_point = start_vec - (H_inv * G.T)
-    results = [[sympy.pretty(start_vec),
-                sympy.pretty(sympy.nsimplify(H, tolerance=1e-10, rational=True)),
-                sympy.pretty(sympy.nsimplify(H_inv, tolerance=1e-10, rational=True)),
-                sympy.pretty(sympy.nsimplify(G, tolerance=1e-10, rational=True)),
-                sympy.pretty((sympy.nsimplify(new_point, tolerance=1e-10, rational=True)))]]
+    a = sympy.nsimplify(start_vec, tolerance=1e-10, rational=True)
+    _b = sympy.nsimplify(H, tolerance=1e-10, rational=True)
+    b = sympy.nsimplify(H_inv, tolerance=1e-10, rational=True)
+    c = sympy.nsimplify(G, tolerance=1e-10, rational=True)
+    abc = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)
+    results = [[sympy.pretty(a) if pretty else np.array(repr(a.tolist())),
+                sympy.pretty(_b) if pretty else np.array(repr(_b.tolist())),
+                sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
+                sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
+                sympy.pretty(abc) if pretty else np.array(repr(abc.tolist()))]]
     table = [tabulate(results, headers=['a=(x0, y0)', 'H', 'b=H^(-1)', 'c=∇f(x0, y0)', 'a-bc=(x1, y1)'])]
     click.echo("\n".join(table))
 
