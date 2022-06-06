@@ -218,58 +218,72 @@ def succhalv(expression, values):
 
 
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.argument('substitution')
-@click.argument('steps')
-def broyden(function, substitution, steps):
+@click.argument('expression')
+@click.argument('values', nargs=-1)
+@click.option('--steps', '-s', default=3, type=int, help='amount of steps')
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@click.option('--rational', '-r', is_flag=True, help='rational numbers')
+def broyden(expression, values, steps, pretty, rational):
     """Iterating optimization using Broyden's method."""
+    expr = hf.str_to_expression(expression)
+    vars = list(sympy.ordered(expr.free_symbols))
+    vals = [hf.__convert_to_float(i) for i in list(values)]
+    missing = len(vars) - len(vals)
+    if missing > 0:
+        s = ['', 's'][missing>1]
+        click.echo(f'Missing {missing} value{s}')
+        return
+    if missing < 0:
+        # omit surplus
+        vals = list(vals)[:missing]
+
     step = 0
     results = []
     x_point_histroy = []
     x_gradient_histroy = []
-    values = []
-    for v in substitution.split('=')[1].split(','):
-        values.append(hf.__convert_to_float(str(v).replace('(', '').replace(')', '')))
-    start_vec = np.array([values[0], values[1]])
-    x_point_histroy.append(start_vec)
+    subdict = dict(zip(vars, vals))
+    point = sympy.Matrix([subdict.get(k) for k in subdict.keys()])
+    x_point_histroy.append(point)
     d = []
     g = []
     A = []
-    x = values[0]
-    y = values[1]
     while step < int(steps):
-        graddres = hf.__get_gradient(function, substitution.split('=')[0], f"({x},{y})")
-        gx0 = hf.__convert_to_float(graddres.split(',')[0].replace('{', '').replace('}', ''))
-        gy0 = hf.__convert_to_float(graddres.split(',')[1].replace('{', '').replace('}', ''))
-        grad_vec = np.array([gx0, gy0])
-        x_gradient_histroy.append(grad_vec)
+        grad, _ = hf.get_gradient(expr)
+        G = grad(expr, vars)
+        G = G.evalf(subs=dict(zip(vars, point)))
+        x_gradient_histroy.append(G)
         if step == 0:
             # inverse hessian
-            H = hf.__get_hessian(function, False)
-            H_res = next(global_client.query("evaluate " + H + "substitute " + substitution).results).text \
-                .replace('(', '').replace(')', '')
-            H_arr_number = []
-            for row in [H_res.split('\n')[0].split('|'), H_res.split('\n')[1].split('|')]:
-                desired_array = [hf.__convert_to_float(numeric_string) for numeric_string in row]
-                H_arr_number.append(desired_array)
-            A = np.linalg.inv(H_arr_number)
+            H = sympy.hessian(expr, vars)
+            H = H.evalf(subs=dict(zip(vars, vals)))
+            A = H.inv()
         else:
             # approximation
-            A = np.array(A)
-            d = np.array(np.subtract(x_point_histroy[-1], x_point_histroy[-2]))
-            d_cv = np.c_[d]
-            g = np.subtract(x_gradient_histroy[-1], x_gradient_histroy[-2])
-            upper = np.array((np.matmul(A, g) - d) * (np.matmul(d_cv.T, A)).T).T
-            lower = np.array(np.matmul(np.matmul(d_cv.T, A), g))
-            A = np.subtract(A, np.divide(upper, lower))
-        new_point = x_point_histroy[-1] - A.dot(grad_vec)
-        results.append([step, x_point_histroy[-1], d, g, A, grad_vec, new_point])
+            d = x_point_histroy[-1] - x_point_histroy[-2]
+            g = x_gradient_histroy[-1] - x_gradient_histroy[-2]
+            upper = (A * g.T - d) * d.T * A
+            lower = d.T * A * g.T
+            A = A - sympy.Matrix(np.divide(upper, lower))
+        new_point = x_point_histroy[-1] - A * G.T
+
+        xiyi = sympy.nsimplify(x_point_histroy[-1], tolerance=1e-10, rational=True) if rational else x_point_histroy[-1]
+        di = (sympy.nsimplify(d, tolerance=1e-10, rational=True) if len(d) > 0 else d) if rational else d
+        gi = (sympy.nsimplify(g, tolerance=1e-10, rational=True) if len(g) > 0 else g) if rational else g
+        Ai = sympy.nsimplify(A, tolerance=1e-10, rational=True) if rational else A
+        Gi = sympy.nsimplify(G.T, tolerance=1e-10, rational=True) if rational else G.T
+        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)  if rational else new_point
+        results.append([step,
+                        sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
+                        sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
+                        sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
+                        sympy.pretty(Ai) if pretty else np.array(Ai),
+                        sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
+                        sympy.pretty(xy_new) if pretty else np.array(xy_new[0:])])
         x_point_histroy.append(new_point)
-        x = new_point[0]
-        y = new_point[1]
+        point = new_point
         step += 1
 
-    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi',"Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
 
