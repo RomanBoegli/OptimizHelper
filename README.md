@@ -350,7 +350,7 @@ F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
 ```
 
 
-Maximum flow of a directed graph provided a edge list (cost is irrelevant here).
+Maximum flow of a directed graph provided an edge list (cost is irrelevant here).
 ```console
 $ cat edges.csv
 from,to,weight,cost

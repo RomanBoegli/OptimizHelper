@@ -1,10 +1,7 @@
 import click
 from ClickGroupExtension import SectionedHelpGroup
 import toolbox as hf
-import configparser
 import sympy as sympy
-import wolframalpha
-from treelib import Tree
 from tabulate import tabulate
 import csv
 import numpy as np
@@ -14,16 +11,13 @@ import pandas as pd
 import scipy as sp
 from pyvis.network import Network
 
-config = configparser.ConfigParser()
-config.read('./settings.ini')
-global_client = wolframalpha.Client(config['WOLFRAMALPHA']['APIKEY'])
 
 # ** This code lacks beauty and is (most probably) inefficient. I had little time. **
 
 @click.group(cls=SectionedHelpGroup)
 def main():
     """
-    Simple CLI tool for optimization problems.
+    Simple CLI for optimization problems.
     """
     pass
 
@@ -305,8 +299,8 @@ def aitken(valueseq):
         if i < 2:
             results.append([i, v, "-"])
             continue
-        aitken = values[i] - (values[i] - values[i-1])**2 / (values[i] - 2 * values[i-1] + values[i-2])
-        results.append([i, v, aitken])
+        aitkenval = values[i] - (values[i] - values[i-1])**2 / (values[i] - 2 * values[i-1] + values[i-2])
+        results.append([i, v, aitkenval])
 
     table = [tabulate(results, headers=["i", "Xi", "Aitken Yi"], tablefmt="simple")]
     click.echo("\n".join(table))
@@ -431,9 +425,9 @@ def floydwarshall(csvfile, onlyuse):
 def maxflow(csvfile, source, target):
     """Finds maximum flow based on provided edge list."""
     G = hf.__get_graph_from_edge_list(csvfile)
-    maxflow, transactions = nx.maximum_flow(G, source, target, 'weight')
+    maxflowval, transactions = nx.maximum_flow(G, source, target, 'weight')
     table = [tabulate(np.array(list(transactions.items())), headers=["node", "routed values"], tablefmt="simple")]
-    click.echo("max flow: " + str(maxflow) + "\n" + "\n".join(table))
+    click.echo("max flow: " + str(maxflowval) + "\n" + "\n".join(table))
 
 
 @main.command(help_group='Part 2')

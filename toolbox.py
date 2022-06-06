@@ -1,5 +1,3 @@
-
-from ClickGroupExtension import SectionedHelpGroup
 import sympy as sympy
 from treelib import Tree
 import numpy as np
@@ -50,27 +48,6 @@ def __difftree_rec(expression, level=0, functionsuffix='', transform=True, paren
                         transform=False,
                         parentNode=id, tree=tree)
     return tree
-
-def __get_gradient(function, point, value):
-    question = "grad (" + function + ")"
-    res = global_client.query(question)
-    gradient = res.details['Result in 2D Cartesian coordinates'].split("\n")[0]
-    returnValue = gradient
-    if point is not None:
-        res2 = global_client.query("evaluate " + gradient.split("=")[1] + "substitute " + point + " = " + value)
-        returnValue = next(res2.results).text
-    return returnValue
-
-def __get_hessian(function, det):
-    if det:
-        question = "hessian of (" + function + ")"
-        res = global_client.query(question)
-        result = next(res.results).text
-    else:
-        question = "hessian matrix of (" + function + ")"
-        res = global_client.query(input=question, format='moutput')
-        result = ((next(res.results))['subpod'])['moutput']
-    return result
 
 def __make_label_dict(labels):
     l = {}
