@@ -67,7 +67,8 @@ def evaluate(expression, values):
     if missing < 0:
         # omit surplus
         vals = list(vals)[:missing]
-    click.echo(expr.evalf(subs=dict(zip(vars, vals))))
+    r = expr.evalf(subs=dict(zip(vars, vals)))
+    click.echo(sympy.nsimplify(r, tolerance=1e-10, rational=True))
 
 
 @main.command(help_group='Part 2')
@@ -81,6 +82,7 @@ def gradient(expression, sub, pretty):
     G = sympy.simplify(grad(expr, vars))
     if len(sub) > 0:
         G = G.evalf(subs=dict((v, x) for v, x in sub))
+        G = (sympy.nsimplify(G, tolerance=1e-10, rational=True))
     if pretty:
         click.echo(sympy.pprint(G))
     else:
@@ -107,7 +109,9 @@ def hessian(expression, sub, pretty, det):
     H_det = sympy.simplify(H.det())
     if len(sub) > 0:
         H = H.evalf(subs=dict((v, x) for v, x in sub))
+        H = (sympy.nsimplify(H, tolerance=1e-10, rational=True))
         H_det = H.det().evalf(subs=dict((v, x) for v, x in sub))
+        H_det = (sympy.nsimplify(H_det, tolerance=1e-10, rational=True))
     if pretty:
         if det:
             click.echo(sympy.pprint(H_det))
@@ -128,29 +132,26 @@ def hessian(expression, sub, pretty, det):
 
 
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.argument('substitution')
-def newton(function, substitution):
+@click.argument('expression')
+@click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
+def newton(expression, sub):
     """Applies one step of Newton's method."""
-    values = []
-    for v in substitution.split('=')[1].split(','):
-        values.append(hf.__convert_to_float(str(v).replace('(', '').replace(')', '')))
-    start_vec = np.array([values[0], values[1]])
-    graddres = hf.__get_gradient(function, substitution.split('=')[0], substitution.split('=')[1])
-    gx0 = hf.__convert_to_float(graddres.split(',')[0].replace('{', '').replace('}', ''))
-    gy0 = hf.__convert_to_float(graddres.split(',')[1].replace('{', '').replace('}', ''))
-    grad_vec = np.array([gx0, gy0])
-    H = hf.__get_hessian(function, False)
-    H_res = next(global_client.query("evaluate " + H + "substitute " + substitution).results).text\
-        .replace('(','').replace(')', '')
-    H_arr_number = []
-    for row in [H_res.split('\n')[0].split('|'), H_res.split('\n')[1].split('|')]:
-        desired_array = [hf.__convert_to_float(numeric_string) for numeric_string in row]
-        H_arr_number.append(desired_array)
-    H_inv = np.linalg.inv(H_arr_number)
-    new_point = start_vec - H_inv.dot(grad_vec)
-    results = [[start_vec, H_inv, grad_vec, new_point]]
-    table = [tabulate(results, headers=["a = (x0, y0)", "b = H^(-1)", "c = ∇f(x0, y0)", "a - bc = (x1, y1)"])]
+    expr = hf.str_to_expression(expression)
+    subdict = dict((v, x) for v, x in sub)
+    start_vec = sympy.Matrix([subdict.get(k) for k in subdict.keys()])
+    grad, vars = hf.get_gradient(expr)
+    G = grad(expr, vars)
+    G = G.evalf(subs=dict((v, x) for v, x in sub))
+    H = sympy.hessian(expr, vars)
+    H = H.evalf(subs=dict((v, x) for v, x in sub))
+    H_inv = H.inv()
+    new_point = start_vec - (H_inv * G.T)
+    results = [[sympy.pretty(start_vec),
+                sympy.pretty(sympy.nsimplify(H, tolerance=1e-10, rational=True)),
+                sympy.pretty(sympy.nsimplify(H_inv, tolerance=1e-10, rational=True)),
+                sympy.pretty(sympy.nsimplify(G, tolerance=1e-10, rational=True)),
+                sympy.pretty((sympy.nsimplify(new_point, tolerance=1e-10, rational=True)))]]
+    table = [tabulate(results, headers=['a=(x0, y0)', 'H', 'b=H^(-1)', 'c=∇f(x0, y0)', 'a-bc=(x1, y1)'])]
     click.echo("\n".join(table))
 
 
@@ -460,6 +461,3 @@ def mincostmaxflow(csvfile, source, target):
 
 if __name__ == "__main__":
     main()
-    #gradient(['(x^2-2xy+x)^2', '-s', 'x', '2',  '-s', 'y', '2'])
-    #gradient(['(x^2-2xy+x)^2', '-s', 'x', '2',  '-s', 'y', '2', '-p'])
-    #gradient(['(x^2-2xy+x)^2'])

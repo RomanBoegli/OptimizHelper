@@ -94,10 +94,10 @@ f: (x^2 - 2xy + x)^2
 Evaluate an expression with given input values.
 ```console
 $ python3 main.py evaluate '2^(1/2)'
-1.41421356237310
+13276383826/9387821033
 
 $ python3 main.py evaluate '2x + y' 4 3
-11.0000000000000
+11
 ```
 
 #### Gradient
@@ -113,8 +113,8 @@ $ python3 main.py gradient '(x^2-2xy+x)^2' --pretty
 
 Evaluate the gradient of a function at a given point.
 ```console
-$ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2
-[[-4.00000000000000, 16.0000000000000]]
+$ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
+[-4  16]
 ```
 
 #### Hessian
@@ -133,12 +133,12 @@ $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --pretty
 Solve for given substitution.
 ```console
 $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0
-[['50.0000000000000', '-4.00000000000000'], ['-4.00000000000000', '8.00000000000000']]
+[['50', '-4'], ['-4', '8']]
 
 $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --pretty
-⎡50.0  -4.0⎤
-⎢          ⎥
-⎣-4.0  8.0 ⎦
+⎡50  -4⎤
+⎢      ⎥
+⎣-4  8 ⎦
 ```
 
 Determinant of Hessian matrix:
@@ -151,7 +151,7 @@ $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --det --pretty
 96⋅x  - 384⋅x + 384
 
 $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --det
-384.000000000000
+384
 ```
 
 #### Successive Halving
@@ -169,13 +169,14 @@ B*   0.05    (1.6, 0)         2.5856  -
 ```
 
 #### Newton
-Next better point using Newton's method:
+One iteration from a given point to a next better point using Newton's method:
 ```console
-$ python3 main.py newton "(x^2-2xy+x)^2" "(x,y)=(2,2)"
-a = (x0, y0)    b = H^(-1)                   c = ∇f(x0, y0)    a - bc = (x1, y1)
---------------  ---------------------------  ----------------  -----------------------
-[2. 2.]         [[-0.16666667 -0.        ]   [-4. 16.]         [1.33333333 1.5       ]
-                 [ 0.          0.03125   ]]
+$ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2
+a=(x0, y0)    H         b=H^(-1)      c=∇f(x0, y0)    a-bc=(x1, y1)
+------------  --------  ------------  --------------  ---------------
+⎡2⎤           ⎡-6  0 ⎤  ⎡-1/6   0  ⎤  [-4  16]        ⎡4/3⎤
+⎢ ⎥           ⎢      ⎥  ⎢          ⎥                  ⎢   ⎥
+⎣2⎦           ⎣0   32⎦  ⎣ 0    1/32⎦                  ⎣3/2⎦
 ```
 
 #### Broyden
