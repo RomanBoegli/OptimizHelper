@@ -1,14 +1,11 @@
 # OptimizCalculator
 A tiny command line interface tool for solving (non) integer & network optimization problems.
 
-<img width="750" alt="cli" src="https://user-images.githubusercontent.com/22320200/169897491-c901751b-65cf-4dd3-b61d-d34e10b860dd.png">
+<img width="100%" alt="cli" src="https://user-images.githubusercontent.com/22320200/172159302-a063d7ff-3729-4acf-90a3-15e7f8060a8e.png">
 
-
-# Prerequisites
+# Setup
 0. Clone this repo.
-1. Login to [WolframAlpha](https://account.wolfram.com/login/oauth2/sign-in) and receive your personal App API key via [MyApps](https://developer.wolframalpha.com/portal/myapps/). Certain commands simply forward the input to WolframAlpha which requires a working internet connection. The free tier allows 2'000 API calls per month.
-2. Paste the key into `settings.ini`.
-3. Open console, navigate to repo, execute `pip install -r requirements.txt`.
+1. Open console, navigate to repo, execute `pip install -r requirements.txt`.
 4. You're ready to go.
 
 # Examples
@@ -18,54 +15,52 @@ Introduction:
 $ python3 main.py --help
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
-  Simple CLI for querying books on Google Books by Oyetoke Toby
+  Simple CLI for optimization problems.
 
 Options:
   --help  Show this message and exit.
 
-Commands:
-  aitken          Returns the Aitken sequence for a value series of at...
-  broyden         Iterating optimization using Broyden's method.
-  diff            Passes a question to WolframAlpha and returns the answer.
-  diffbeauty      Returns the derivative in pretty form.
-  difftree        Returns all partial derivatives as a tree.
-  dijkstra        All shortest paths to all other nodes from given...
+Part 2a:
+  aitken      Returns the Aitken sequence for a value series of at leas...
+  broyden     Iterating optimization using Broyden's method.
+  diffbeauty  Returns the derivative in pretty form.
+  difftree    Returns all partial derivatives as a tree.
+  evaluate    Evaluates a function with a given substitution (assumes a...
+  gradient    Returns the gradient of the given function.
+  hessian     Returns Hessian matrix or its determinant of a given func...
+  newton      Applies one step of Newton's method.
+  succhalv    Applies one step of Gradient method with successive halvi...
+
+Part 2b:
+  dijkstra        All shortest paths to all other nodes from given starting...
   drawgraph       Plots a graph based on provided adjacency matrix.
-  evaluate        Evaluates a function with a given substitution.
   floydwarshall   Returns matrix with shortest distances between all nodes.
-  gradient        Returns the gradient of the given function.
-  hessian         Returns Hessian Matrix 'H' of given function.
   maxflow         Finds maximum flow based on provided edge list.
-  maxmatch        Maximum matchings of a bipartite graph based on...
-  mincostmaxflow  Returns a maximum s-t flow of minimum cost based on...
-  mincut          Finds minimum s-t-cut based on provided edge list or...
+  maxmatch        Maximum matchings of a bipartite graph based on provided...
+  mincostmaxflow  Returns a maximum s-t flow of minimum cost based on provi...
+  mincut          Finds minimum s-t-cut based on provided edge list or adja...
   mst             Returns the minimum spanning tree.
-  newton          Applies one step of Newton's method.
-  succhalv        Applies one step of Gradient method with successive...
-  traverse        Traverses graph either breadth-first (style='bf') or...
+  traverse        Traverses graph either breadth-first (style='bf') or dept..
 ````
 
 </br>
 
-## Unconstrained Continuous Optimizations
+## Part 2
 
-Simple first derivative w.r.t. to `x`:
-```console
-$ python3 main.py diff "(x^2-2xy+x)^2" x 1
-d/dx((x^2 - 2 x y + x)^2) = 2 x (x - 2 y + 1) (2 x - 2 y + 1)
-```
+### Unconstrained Continuous Optimizations Problems
 
-Same but more beautifuly printed:
+#### Derivatives
+Differenciate a function once w.r.t. `x` and print beatifuly.
 ```console
-$ python3 main.py diffbeauty "(x^2-2xy+x)^2" --wrt='x'
+$ python3 main.py diffbeauty '(x^2-2xy+x)^2' --wrt=x
 fx:
                 ⎛ 2            ⎞
 (4⋅x - 4⋅y + 2)⋅⎝x  - 2⋅x⋅y + x⎠
 ```
 
-Get complete partial differenciation w.r.t. to all variables:
+Get complete partial differenciation tree w.r.t. all variables.
 ```console
-$ python3 main.py difftree "(x^2-2xy+x)^2"
+$ python3 main.py difftree '(x^2-2xy+x)^2'
 f: (x^2 - 2xy + x)^2
 ├── f1x_: (4x - 4y + 2)(x^2 - 2xy + x)
 │   ├── f2x_x: 4x^2 - 8xy + 4x + (2x - 2y + 1)(4x - 4y + 2)
@@ -93,77 +88,138 @@ f: (x^2 - 2xy + x)^2
             └── f4x_yyx: 16
 ```
 
-Evaluate an expression with given input:
+#### Evaluations
+Evaluate an expression with given input values.
 ```console
-$ python3 main.py evaluate "{2x + y , x/(1+y)}" "(x,y)=(4,1)"
-{9, 2}
+$ python3 main.py evaluate '2^(1/2)'
+13276383826/9387821033
+
+$ python3 main.py evaluate '2x + y' 4 3
+11
 ```
 
-Receive the gradient vector:
+#### Gradient Method with Successive Halving
+Receive the gradient vector/matrix.
 ```console
-$ python3 main.py gradient "(x^2-2xy+x)^2"
-grad((x^2 - 2 x y + x)^2) = (2 x (x - 2 y + 1) (2 x - 2 y + 1), -4 x^2 (x - 2 y + 1))
-```
-Evaluate the gradient of a function at a given point:
-```console
-$ python3 main.py gradient "(x^2-2xy+x)^2" --point "(x,y)" --value "(2,2)"
-{-4, 16}
+$ python3 main.py gradient '(x^2-2xy+x)^2'
+[['2x(x - 2y + 1)(2x - 2y + 1)', '4x^2(-x + 2y - 1)']]
+
+$ python3 main.py gradient '(x^2-2xy+x)^2' --pretty
+⎡                                      2               ⎤
+⎣2⋅x⋅(x - 2⋅y + 1)⋅(2⋅x - 2⋅y + 1)  4⋅x ⋅(-x + 2⋅y - 1)⎦
 ```
 
-Receive the Hessian matrix of a given function:
+Evaluate the gradient of a function at a given point.
 ```console
-$ python3 main.py hessian "(x-2)^4 + (x-2y)^2"
-{{2 + 12 (-2 + x)^2, -4}, {-4, 8}}
+$ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
+[-4  16]
+```
 
-# copy paste result for evaluation at given point:
-$ python3 main.py evaluate "{{2 + 12 (-2 + x)^2, -4}, {-4, 8}}" "(x,y)=(0,0)"
+Next better point using Gradient method with successive halving (incl. parabola fitted point $B*$):
+```console
+$ python3 main.py succhalv '(x-2)^4 + (x-2y)^2' 2 0
+i            B  (x1, y1)               f(x1, y1)  < 4 ?
+---  ---------  -------------------  -----------  -------
+0    1          (-2, 8)               580         False
+1    0.5        (0, 4)                 80         False
+2    0.25       (1, 2)                 10         False
+3    0.125      (1.5, 1)                0.3125    True
+B*   0.0969626  (1.61215, 0.775701)     0.026319  -
+```
+
+#### Hessian
+Receive the Hessian matrix of a given function.
+```console
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2'
+[['12(x - 2)^2 + 2', '-4'], ['-4', '8']]
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --pretty
+⎡          2        ⎤
+⎢12⋅(x - 2)  + 2  -4⎥
+⎢                   ⎥
+⎣      -4         8 ⎦
+```
+
+Solve for given substitution.
+```console
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0
+[['50', '-4'], ['-4', '8']]
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --pretty
+⎡50  -4⎤
+⎢      ⎥
+⎣-4  8 ⎦
 ```
 
 Determinant of Hessian matrix:
 ```console
-$ python3 main.py hessian "(x-2)^4 + (x-2y)^2" --det True
-96 (x - 2)^2
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --det
+96x^2 - 384x + 384
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --det --pretty
+    2
+96⋅x  - 384⋅x + 384
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --det
+384
 ```
 
-Next better point using Gradient method with successive halving (incl. parabola fitted point):
+#### Newton's Method
+One iteration from a given point to a next better point using Newton's method:
 ```console
-$ python3 main.py succhalv "(x-2)^4 + (x-2y)^2" "(x,y)=(0,0)"
-i         B  (x1, y1)      f(x1, y1)  < 16.00...?
----  ------  ----------  -----------  -------------
-0    1       (32, 0)     811024       False
-1    0.5     (16, 0)      38672       False
-2    0.25    (8, 0)        1360       False
-3    0.125   (4, 0)          32       False
-4    0.0625  (2, 0)           4       True
-B*   0.05    (1.6, 0)         2.5856  -
+$ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2
+a=(x0, y0)    H                   b=H^(-1)                c=∇f(x0, y0)    a-bc=(x1, y1)
+------------  ------------------  ----------------------  --------------  ---------------
+[[2], [2]]    [[-6, 0], [0, 32]]  [[-1/6, 0], [0, 1/32]]  [[-4, 16]]      [[4/3], [3/2]]
+
+$ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
+a=(x0, y0)    H         b=H^(-1)      c=∇f(x0, y0)    a-bc=(x1, y1)
+------------  --------  ------------  --------------  ---------------
+⎡2⎤           ⎡-6  0 ⎤  ⎡-1/6   0  ⎤  [-4  16]        ⎡4/3⎤
+⎢ ⎥           ⎢      ⎥  ⎢          ⎥                  ⎢   ⎥
+⎣2⎦           ⎣0   32⎦  ⎣ 0    1/32⎦                  ⎣3/2⎦
 ```
 
-Next better point using Newton's method:
+#### Broyden's Method
+Custom amount of interations using Broyden's method:
 ```console
-$ python3 main.py newton "(x^2-2xy+x)^2" "(x,y)=(2,2)"
-a = (x0, y0)    b = H^(-1)                   c = ∇f(x0, y0)    a - bc = (x1, y1)
---------------  ---------------------------  ----------------  -----------------------
-[2. 2.]         [[-0.16666667 -0.        ]   [-4. 16.]         [1.33333333 1.5       ]
-                 [ 0.          0.03125   ]]
+$ python3 main.py broyden '(x^2-2xy+x)^2' 2 2 --pretty -s 4
+╒═════╤═════════════════════╤═════════════════════════════════════════╤═══════════════════════════════════════╤════════════════════════════════════════════════╤══════════════════════╤═════════════════════╕
+│   i │ [Xi, Yi]            │ di                                      │ gi                                    │ Ai                                             │ ∇f(Xi, Yi)           │ [X(i+1), Y(i+1)]    │
+╞═════╪═════════════════════╪═════════════════════════════════════════╪═══════════════════════════════════════╪════════════════════════════════════════════════╪══════════════════════╪═════════════════════╡
+│   0 │ ⎡2.0⎤               │ []                                      │ []                                    │ ⎡ -0.166666666666667    3.93940421025525e-126⎤ │ ⎡-4.0⎤               │ ⎡1.33333333333333⎤  │
+│     │ ⎢   ⎥               │                                         │                                       │ ⎢                                            ⎥ │ ⎢    ⎥               │ ⎢                ⎥  │
+│     │ ⎣2.0⎦               │                                         │                                       │ ⎣3.93940421025525e-126         0.03125       ⎦ │ ⎣16.0⎦               │ ⎣      1.5       ⎦  │
+├─────┼─────────────────────┼─────────────────────────────────────────┼───────────────────────────────────────┼────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+│   1 │ ⎡1.33333333333333⎤  │ [-0.666666666666667 -0.500000000000000] │ [2.81481481481481 -11.2592592592593]  │ ⎡-0.211578947368421   0.00631578947368421⎤     │ ⎡-1.18518518518519⎤  │ ⎡1.05263157894737⎤  │
+│     │ ⎢                ⎥  │                                         │                                       │ ⎢                                        ⎥     │ ⎢                 ⎥  │ ⎢                ⎥  │
+│     │ ⎣      1.5       ⎦  │                                         │                                       │ ⎣-0.0336842105263158  0.0359868421052632 ⎦     │ ⎣4.74074074074074 ⎦  │ ⎣1.28947368421053⎦  │
+├─────┼─────────────────────┼─────────────────────────────────────────┼───────────────────────────────────────┼────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+│   2 │ ⎡1.05263157894737⎤  │ [-0.280701754385965 -0.210526315789474] │ [0.602009795186643 -2.40803918074657] │ ⎡-0.35841561423651   0.0269646957520092⎤       │ ⎡-0.583175389998542⎤ │ ⎡0.780711825487945⎤ │
+│     │ ⎢                ⎥  │                                         │                                       │ ⎢                                      ⎥       │ ⎢                  ⎥ │ ⎢                 ⎥ │
+│     │ ⎣1.28947368421053⎦  │                                         │                                       │ ⎣-0.143811710677382  0.0514735218140069⎦       │ ⎣ 2.33270155999417 ⎦ │ ⎣1.08553386911596 ⎦ │
+├─────┼─────────────────────┼─────────────────────────────────────────┼───────────────────────────────────────┼────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+│   3 │ ⎡0.780711825487945⎤ │ [-0.271919753459424 -0.203939815094568] │ [0.345249185044140 -1.38099674017656] │ ⎡-0.564066771922377  0.0558843898015843⎤       │ ⎡-0.237926204954403⎤ │ ⎡0.593320115976839⎤ │
+│     │ ⎢                 ⎥ │                                         │                                       │ ⎢                                      ⎥       │ ⎢                  ⎥ │ ⎢                 ⎥ │
+│     │ ⎣1.08553386911596 ⎦ │                                         │                                       │ ⎣-0.298050078941783  0.0731632923511883⎦       │ ⎣ 0.95170481981761 ⎦ │ ⎣0.944990086982629⎦ │
+╘═════╧═════════════════════╧═════════════════════════════════════════╧═══════════════════════════════════════╧════════════════════════════════════════════════╧══════════════════════╧═════════════════════╛
+
+$ python3 main.py broyden '(x^2-2xy+x)^2' 2 2 --rational
+╒═════╤═══════════════╤════════════════╤═════════════════════════════════════════╤════════════════════════════════╤═════════════════════════╤═════════════════════╕
+│   i │ [Xi, Yi]      │ di             │ gi                                      │ Ai                             │ ∇f(Xi, Yi)              │ [X(i+1), Y(i+1)]    │
+╞═════╪═══════════════╪════════════════╪═════════════════════════════════════════╪════════════════════════════════╪═════════════════════════╪═════════════════════╡
+│   0 │ [2 2]         │ []             │ []                                      │ [[-1/6 0]                      │ [-4 16]                 │ [4/3 3/2]           │
+│     │               │                │                                         │  [0 1/32]]                     │                         │                     │
+├─────┼───────────────┼────────────────┼─────────────────────────────────────────┼────────────────────────────────┼─────────────────────────┼─────────────────────┤
+│   1 │ [4/3 3/2]     │ [-2/3 -1/2]    │ [76/27 -304/27]                         │ [[-201/950 3/475]              │ [-32/27 128/27]         │ [20/19 49/38]       │
+│     │               │                │                                         │  [-16/475 547/15200]]          │                         │                     │
+├─────┼───────────────┼────────────────┼─────────────────────────────────────────┼────────────────────────────────┼─────────────────────────┼─────────────────────┤
+│   2 │ [20/19 49/38] │ [-16/57 -4/19] │ [111488/185193 -24080285991/9999956057] │ [[-15609/43550 18789/696800]   │ [-4000/6859 16000/6859] │ [680/871 1891/1742] │
+│     │               │                │                                         │  [-6263/43550 143467/2787200]] │                         │                     │
+╘═════╧═══════════════╧════════════════╧═════════════════════════════════════════╧════════════════════════════════╧═════════════════════════╧═════════════════════╛
 ```
 
-Custom amount of point optimization interations using Broyden's method:
-```console
-$ python3 main.py broyden "(x^2-2xy+x)^2" "(x,y)=(2,2)" 3
-╒═════╤═════════════════════════╤═══════════════════════════╤═══════════════════════════╤═════════════════════════════╤═══════════════════════════╤═════════════════════════╕
-│   i │ [Xi, Yi]                │ di                        │ gi                        │ Ai                          │ ∇f(Xi, Yi)                │ [X(i+1), Y(i+1)]        │
-╞═════╪═════════════════════════╪═══════════════════════════╪═══════════════════════════╪═════════════════════════════╪═══════════════════════════╪═════════════════════════╡
-│   0 │ [2. 2.]                 │ []                        │ []                        │ [[-0.16666667 -0.        ]  │ [-4. 16.]                 │ [1.33333333 1.5       ] │
-│     │                         │                           │                           │  [ 0.          0.03125   ]] │                           │                         │
-├─────┼─────────────────────────┼───────────────────────────┼───────────────────────────┼─────────────────────────────┼───────────────────────────┼─────────────────────────┤
-│   1 │ [1.33333333 1.5       ] │ [-0.66666667 -0.5       ] │ [  2.81481 -11.25926]     │ [[-0.21157918  0.00631582]  │ [-1.18519  4.74074]       │ [1.05263014 1.28947349] │
-│     │                         │                           │                           │  [-0.03368424  0.03598685]] │                           │                         │
-├─────┼─────────────────────────┼───────────────────────────┼───────────────────────────┼─────────────────────────────┼───────────────────────────┼─────────────────────────┤
-│   2 │ [1.05263014 1.28947349] │ [-0.2807032  -0.21052651] │ [ 0.60201701 -2.40804015] │ [[-0.35841453  0.02696448]  │ [-0.58317299  2.33269985] │ [0.78071242 1.08553497] │
-│     │                         │                           │                           │  [-0.14381088  0.05147336]] │                           │                         │
-╘═════╧═════════════════════════╧═══════════════════════════╧═══════════════════════════╧═════════════════════════════╧═══════════════════════════╧═════════════════════════╛
-```
-
+#### Aitken
 Optimize a value series using Aitken sequence:
 ```console
 $ python3 main.py aitken "100,10,2,0.5"
@@ -292,7 +348,7 @@ F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
 ```
 
 
-Maximum flow of a directed graph provided a edge list (cost is irrelevant here).
+Maximum flow of a directed graph provided an edge list (cost is irrelevant here).
 ```console
 $ cat edges.csv
 from,to,weight,cost
