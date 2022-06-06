@@ -100,7 +100,7 @@ $ python3 main.py evaluate '2x + y' 4 3
 11
 ```
 
-#### Gradient
+#### Gradient Method with Successive Halving
 Receive the gradient vector/matrix.
 ```console
 $ python3 main.py gradient '(x^2-2xy+x)^2'
@@ -115,6 +115,18 @@ Evaluate the gradient of a function at a given point.
 ```console
 $ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
 [-4  16]
+```
+
+Next better point using Gradient method with successive halving (incl. parabola fitted point $B*$):
+```console
+$ python3 main.py succhalv '(x-2)^4 + (x-2y)^2' 2 0
+i            B  (x1, y1)               f(x1, y1)  < 4 ?
+---  ---------  -------------------  -----------  -------
+0    1          (-2, 8)               580         False
+1    0.5        (0, 4)                 80         False
+2    0.25       (1, 2)                 10         False
+3    0.125      (1.5, 1)                0.3125    True
+B*   0.0969626  (1.61215, 0.775701)     0.026319  -
 ```
 
 #### Hessian
@@ -154,21 +166,7 @@ $ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --det
 384
 ```
 
-#### Successive Halving
-Next better point using Gradient method with successive halving (incl. parabola fitted point):
-```console
-$ python3 main.py succhalv "(x-2)^4 + (x-2y)^2" "(x,y)=(0,0)"
-i         B  (x1, y1)      f(x1, y1)  < 16.00...?
----  ------  ----------  -----------  -------------
-0    1       (32, 0)     811024       False
-1    0.5     (16, 0)      38672       False
-2    0.25    (8, 0)        1360       False
-3    0.125   (4, 0)          32       False
-4    0.0625  (2, 0)           4       True
-B*   0.05    (1.6, 0)         2.5856  -
-```
-
-#### Newton
+#### Newton's Method
 One iteration from a given point to a next better point using Newton's method:
 ```console
 $ python3 main.py newton '(x^2-2xy+x)^2' -s x 2 -s y 2
@@ -184,7 +182,7 @@ a=(x0, y0)    H         b=H^(-1)      c=∇f(x0, y0)    a-bc=(x1, y1)
 ⎣2⎦           ⎣0   32⎦  ⎣ 0    1/32⎦                  ⎣3/2⎦
 ```
 
-#### Broyden
+#### Broyden's Method
 Custom amount of point optimization interations using Broyden's method:
 ```console
 $ python3 main.py broyden "(x^2-2xy+x)^2" "(x,y)=(2,2)" 3

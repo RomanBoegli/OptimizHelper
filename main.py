@@ -162,44 +162,54 @@ def newton(expression, sub, pretty):
 
 
 @main.command(help_group='Part 2')
-@click.argument('function')
-@click.argument('substitution')
-def succhalv(function, substitution):
+@click.argument('expression')
+@click.argument('values', nargs=-1)
+def succhalv(expression, values):
     """Applies one step of Gradient method with successive halving and parabola fitting."""
-    expr = sympy.parse_expr(function, transformations=sympy.parsing.sympy_parser.T[:])
-    x, y = sympy.symbols('x, y')
-    vars = [x, y]
-    values = []
-    for v in substitution.split('=')[1].split(','):
-        values.append(hf.__convert_to_float(str(v).replace('(', '').replace(')', '')))
-    refValue = expr.subs(zip(vars, values))
-    graddres = hf.__get_gradient(function, substitution.split('=')[0], substitution.split('=')[1])
+    expr = hf.str_to_expression(expression)
+    vars = list(sympy.ordered(expr.free_symbols))
+    vals = [hf.__convert_to_float(i) for i in list(values)]
+    missing = len(vars) - len(vals)
+    if missing > 0:
+        s = ['', 's'][missing>1]
+        click.echo(f'Missing {missing} value{s}')
+        return
+    if missing < 0:
+        # omit surplus
+        vals = list(vals)[:missing]
+
+    refValue = sympy.nsimplify(expr.subs(zip(vars, vals)), tolerance=1e-10, rational=True)
+    grad, vars = hf.get_gradient(expr)
+    G = sympy.simplify(grad(expr, vars))
+    G = G.evalf(subs=dict(zip(vars, vals)))
+    graddres = sympy.nsimplify(G, tolerance=1e-10, rational=True)
+
     x0, y0, B, gx0, gy0 = sympy.symbols('x0, y0, B, gx0, gy0')
     exp1 = x0 + (-B * gx0)
     exp2 = y0 + (-B * gy0)
-    res_exp1 = hf.__convert_to_float(graddres.split(',')[0].replace('{', '').replace('}', ''))
-    res_exp2 = hf.__convert_to_float(graddres.split(',')[1].replace('{', '').replace('}', ''))
+    res_exp1 = graddres[0]
+    res_exp2 = graddres[1]
     halvings = 0
     f_result = 0
     results = []
     while True:
         currentB = 1 * 0.5 ** halvings
-        x1 = exp1.subs([(x0, values[0]), (B, currentB), (gx0, res_exp1)])
-        y1 = exp2.subs([(y0, values[1]), (B, currentB), (gy0, res_exp2)])
+        x1 = exp1.subs([(x0, vals[0]), (B, currentB), (gx0, res_exp1)])
+        y1 = exp2.subs([(y0, vals[1]), (B, currentB), (gy0, res_exp2)])
         f_result_previous = f_result
         f_result = expr.subs(zip(vars, [x1, y1]))
         x1y1 = "({0}, {1})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1))
-        results.append([halvings, currentB, x1y1, hf.__rstrip_zeros(f_result), f_result < refValue])
+        results.append([halvings, currentB, x1y1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue])
         if f_result < refValue:
             B_star = currentB / 2 * (3 * refValue - 4 * f_result + f_result_previous) / (
                         refValue - 2 * f_result + f_result_previous)
-            x1 = exp1.subs([(x0, values[0]), (B, B_star), (gx0, res_exp1)])
-            y1 = exp2.subs([(y0, values[1]), (B, B_star), (gy0, res_exp2)])
+            x1 = exp1.subs([(x0, vals[0]), (B, B_star), (gx0, res_exp1)])
+            y1 = exp2.subs([(y0, vals[1]), (B, B_star), (gy0, res_exp2)])
             x1y1 = "({0}, {1})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1))
             f_result_better = expr.subs(zip(vars, [x1, y1]))
             results.append(['B*', B_star, x1y1, hf.__rstrip_zeros(f_result_better), ' - '])
             table = [tabulate(results,
-                              headers=["i", "B", "(x1, y1)", "f(x1, y1)", "< " + f"{refValue:.2f}..." + "?"],
+                              headers=["i", "B", "(x1, y1)", "f(x1, y1)", "< " + sympy.pretty(refValue) + " ?"],
                               tablefmt="simple")]
             break
         else:
