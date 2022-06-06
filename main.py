@@ -73,24 +73,14 @@ def evaluate(expression, values):
 @main.command(help_group='Part 2')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
-@click.option('--pretty', '-p', is_flag=True, help='add to show results prettier')
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
 def gradient(expression, sub, pretty):
     """Returns the gradient of the given function."""
     expr = hf.str_to_expression(expression)
     grad, vars = hf.get_gradient(expr)
     G = sympy.simplify(grad(expr, vars))
     if len(sub) > 0:
-        G_eval = []
-        for row in G.tolist():
-            r_eval = []
-            for expr in row:
-                r_eval.append(expr.evalf(subs=dict((v, x) for v, x in sub)))
-            G_eval.append(r_eval)
-        if pretty:
-            click.echo(sympy.pprint(G_eval))
-        else:
-            click.echo(np.array(repr(G_eval)))
-        return
+        G = G.evalf(subs=dict((v, x) for v, x in sub))
     if pretty:
         click.echo(sympy.pprint(G))
     else:
@@ -107,39 +97,34 @@ def gradient(expression, sub, pretty):
 @main.command(help_group='Part 2')
 @click.argument('expression')
 @click.option('--sub', '-s', default=None, type=(str, int), multiple=True, help='variable name and its value')
-@click.option('--pretty', '-p', is_flag=True, help='pretty print result when not substituted')
-@click.option("--det", is_flag=True, help="return only determinant of hessian matrix")
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@click.option('--det', '-d', is_flag=True, help="return only determinant of hessian matrix")
 def hessian(expression, sub, pretty, det):
-    """Returns Hessian Matrix 'H' of given function."""
+    """Returns Hessian matrix or its determinant of a given function."""
     expr = hf.str_to_expression(expression)
-    grad, vars = hf.get_gradient(expr)
+    _, vars = hf.get_gradient(expr)
     H = sympy.simplify(sympy.hessian(expr, vars))
+    H_det = sympy.simplify(H.det())
     if len(sub) > 0:
-        H_eval = H.evalf(subs=dict((v, x) for v, x in sub))
-        if pretty:
-            click.echo(sympy.pprint(H_eval))
-            if det:
-                H_eval_det = H_eval.det().evalf(subs=dict((v, x) for v, x in sub))
-                click.echo(sympy.pprint(H_eval_det))
-        else:
-            click.echo(np.array(H_eval))
-            if det:
-                H_eval_det = H_eval.det().evalf(subs=dict((v, x) for v, x in sub))
-                click.echo(np.array(H_eval_det))
-        return
-    if det:
-        click.echo(sympy.pprint(H.det()))
+        H = H.evalf(subs=dict((v, x) for v, x in sub))
+        H_det = H.det().evalf(subs=dict((v, x) for v, x in sub))
     if pretty:
-        click.echo(sympy.pprint(H))
+        if det:
+            click.echo(sympy.pprint(H_det))
+        else:
+            click.echo(sympy.pprint(H))
     else:
-        H_print = []
-        for row in H.tolist():
-            r_print = []
-            for expr in row:
-                k = sympy.sstr(expr).replace('**', '^').replace('*', '')
-                r_print.append(k)
-            H_print.append(r_print)
-        click.echo(np.array(H_print))
+        if det:
+            click.echo(np.array(sympy.sstr(H_det).replace('**', '^').replace('*', '')))
+        else:
+            H_print = []
+            for row in H.tolist():
+                r_print = []
+                for expr in row:
+                    k = sympy.sstr(expr).replace('**', '^').replace('*', '')
+                    r_print.append(k)
+                H_print.append(r_print)
+            click.echo(np.array(repr(H_print)))
 
 
 @main.command(help_group='Part 2')

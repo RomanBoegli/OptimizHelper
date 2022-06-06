@@ -51,6 +51,7 @@ Commands:
 
 ### Unconstrained Continuous Optimizations Problems
 
+#### Derivatives
 Differenciate a function once w.r.t. `x` and print beatifuly.
 ```console
 $ python3 main.py diffbeauty '(x^2-2xy+x)^2' --wrt=x
@@ -89,6 +90,7 @@ f: (x^2 - 2xy + x)^2
             └── f4x_yyx: 16
 ```
 
+#### Evaluations
 Evaluate an expression with given input values.
 ```console
 $ python3 main.py evaluate '2^(1/2)'
@@ -98,6 +100,7 @@ $ python3 main.py evaluate '2x + y' 4 3
 11.0000000000000
 ```
 
+#### Gradient
 Receive the gradient vector/matrix.
 ```console
 $ python3 main.py gradient '(x^2-2xy+x)^2'
@@ -114,23 +117,44 @@ $ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2
 [[-4.00000000000000, 16.0000000000000]]
 ```
 
----
-
-Receive the Hessian matrix of a given function:
+#### Hessian
+Receive the Hessian matrix of a given function.
 ```console
-$ python3 main.py hessian "(x-2)^4 + (x-2y)^2"
-{{2 + 12 (-2 + x)^2, -4}, {-4, 8}}
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2'
+[['12(x - 2)^2 + 2', '-4'], ['-4', '8']]
 
-# copy paste result for evaluation at given point:
-$ python3 main.py evaluate "{{2 + 12 (-2 + x)^2, -4}, {-4, 8}}" "(x,y)=(0,0)"
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --pretty
+⎡          2        ⎤
+⎢12⋅(x - 2)  + 2  -4⎥
+⎢                   ⎥
+⎣      -4         8 ⎦
+```
+
+Solve for given substitution.
+```console
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0
+[['50.0000000000000', '-4.00000000000000'], ['-4.00000000000000', '8.00000000000000']]
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --pretty
+⎡50.0  -4.0⎤
+⎢          ⎥
+⎣-4.0  8.0 ⎦
 ```
 
 Determinant of Hessian matrix:
 ```console
-$ python3 main.py hessian "(x-2)^4 + (x-2y)^2" --det True
-96 (x - 2)^2
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --det
+96x^2 - 384x + 384
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' --det --pretty
+    2
+96⋅x  - 384⋅x + 384
+
+$ python3 main.py hessian '(x-2)^4 + (x-2y)^2' -s x 0 -s y 0 --det
+384.000000000000
 ```
 
+#### Successive Halving
 Next better point using Gradient method with successive halving (incl. parabola fitted point):
 ```console
 $ python3 main.py succhalv "(x-2)^4 + (x-2y)^2" "(x,y)=(0,0)"
@@ -144,6 +168,7 @@ i         B  (x1, y1)      f(x1, y1)  < 16.00...?
 B*   0.05    (1.6, 0)         2.5856  -
 ```
 
+#### Newton
 Next better point using Newton's method:
 ```console
 $ python3 main.py newton "(x^2-2xy+x)^2" "(x,y)=(2,2)"
@@ -153,6 +178,7 @@ a = (x0, y0)    b = H^(-1)                   c = ∇f(x0, y0)    a - bc = (x1, y
                  [ 0.          0.03125   ]]
 ```
 
+#### Broyden
 Custom amount of point optimization interations using Broyden's method:
 ```console
 $ python3 main.py broyden "(x^2-2xy+x)^2" "(x,y)=(2,2)" 3
@@ -170,6 +196,7 @@ $ python3 main.py broyden "(x^2-2xy+x)^2" "(x,y)=(2,2)" 3
 ╘═════╧═════════════════════════╧═══════════════════════════╧═══════════════════════════╧═════════════════════════════╧═══════════════════════════╧═════════════════════════╛
 ```
 
+#### Aitken
 Optimize a value series using Aitken sequence:
 ```console
 $ python3 main.py aitken "100,10,2,0.5"
