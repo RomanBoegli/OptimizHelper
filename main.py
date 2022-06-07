@@ -36,7 +36,10 @@ def matanalysis(file, pretty):
     results.append(['provided input', '-', sympy.pretty(mat) if pretty else np.array(repr(mat.tolist()))])
     results.append(['independent cols', indcols, sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist()))])
     results.append(['independent rows', indrows, sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist()))])
-    results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist()))])
+    if sympy.shape(mat)[0] == sympy.shape(mat)[1]: 
+        results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist()))])
+    else:
+        results.append(['inverse', '-', 'matrix must be square to invert'])
     table = [tabulate(results, headers=["insight", "descr", "matrix"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 

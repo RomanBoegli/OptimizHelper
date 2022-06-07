@@ -46,6 +46,32 @@ Part 2b:
   traverse         Traverses graph either breadth-first (style='bf') or...
 ````
 
+## Part 1a
+Get linearly independent components and inversion of matrix:
+```console
+$ python3 main.py matanalysis /path/to/matrix.ods --pretty
+╒══════════════════╤═════════╤═════════════╕
+│ insight          │ descr   │ matrix      │
+╞══════════════════╪═════════╪═════════════╡
+│ provided input   │ -       │ ⎡0  -1⎤     │
+│                  │         │ ⎢     ⎥     │
+│                  │         │ ⎣2  -1⎦     │
+├──────────────────┼─────────┼─────────────┤
+│ independent cols │ (0, 1)  │ ⎡0  -1⎤     │
+│                  │         │ ⎢     ⎥     │
+│                  │         │ ⎣2  -1⎦     │
+├──────────────────┼─────────┼─────────────┤
+│ independent rows │ (0, 1)  │ ⎡0  -1⎤     │
+│                  │         │ ⎢     ⎥     │
+│                  │         │ ⎣2  -1⎦     │
+├──────────────────┼─────────┼─────────────┤
+│ inverse          │ -       │ ⎡-1/2  1/2⎤ │
+│                  │         │ ⎢         ⎥ │
+│                  │         │ ⎣ -1    0 ⎦ │
+╘══════════════════╧═════════╧═════════════╛
+```
+
+
 </br>
 
 ## Part 2
