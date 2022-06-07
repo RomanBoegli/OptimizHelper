@@ -1,9 +1,13 @@
 # OptimizCalculator
 A tiny command line interface tool for solving (non) integer & network optimization problems.
 
-<img width="100%" alt="cli" src="https://user-images.githubusercontent.com/22320200/172159302-a063d7ff-3729-4acf-90a3-15e7f8060a8e.png">
+<p align="left">
+  <img width="80%" alt="cli" src="https://user-images.githubusercontent.com/22320200/172475394-6b8ac2f4-853d-489c-9176-a1f09def0449.png">
+</p>
+
 
 # Setup
+
 0. Clone this repo.
 1. Open console, navigate to repo, execute `pip install -r requirements.txt`.
 4. You're ready to go.
