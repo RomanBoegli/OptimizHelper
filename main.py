@@ -20,6 +20,27 @@ def main():
     pass
 
 
+@main.command(help_group='Part 1a')
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+def matanalysis(file, pretty):
+    """Basic matrix analysis insights."""
+    df = hf.read_ods(file, noheaders=True)
+    mat = sympy.Matrix(df)
+    _, indcols = mat.rref()
+    _, indrows = mat.T.rref()
+    mat = sympy.nsimplify(mat, rational=True)
+    imatc = sympy.nsimplify(sympy.Matrix(np.array(mat.T.tolist())[np.array(indcols)].T), rational=True)
+    imatr = sympy.nsimplify(sympy.Matrix(np.array(mat.tolist())[np.array(indrows)]), rational=True)
+    results = []
+    results.append(['provided input', '-', sympy.pretty(mat) if pretty else np.array(repr(mat.tolist()))])
+    results.append(['independent cols', indcols, sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist()))])
+    results.append(['independent rows', indrows, sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist()))])
+    results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist()))])
+    table = [tabulate(results, headers=["insight", "descr", "matrix"], tablefmt="fancy_grid")]
+    click.echo("\n".join(table))
+
+
 @main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.option('--wrt', default='x', help='partial derivative with respect to variable (type \'all\' for all)')
@@ -482,3 +503,4 @@ def mincostmaxflow(csvfile, source, target):
 
 if __name__ == "__main__":
     main()
+    #indepmat(['/private/var/folders/mp/5w4gks8d5d55m00_hvsh9zxr0000gn/T/matrix0.ods'])

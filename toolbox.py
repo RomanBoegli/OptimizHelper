@@ -2,6 +2,7 @@ import sympy as sympy
 from treelib import Tree
 import numpy as np
 import networkx as nx
+import pandas_ods_reader as por
 
 def str_to_expression(expression):
     return sympy.parse_expr(expression, transformations=sympy.parsing.sympy_parser.T[:])
@@ -10,6 +11,13 @@ def get_gradient(expr):
     vars = list(sympy.ordered(expr.free_symbols))
     gradient = lambda f, v: sympy.Matrix([f]).jacobian(vars)
     return gradient, vars
+
+def read_ods(filepath, sheet_idx=1, noheaders=False, columns=[]):
+    if noheaders:
+        return por.read_ods(filepath, sheet_idx, headers=False)
+    if len(columns)>0:
+        return por.read_ods(filepath, sheet_idx, columns=columns)
+    return por.read_ods(filepath, 1)
 
 def __convert_to_float(frac_str):
     try:
