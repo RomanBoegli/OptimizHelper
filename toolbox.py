@@ -12,11 +12,11 @@ def get_gradient(expr):
     gradient = lambda f, v: sympy.Matrix([f]).jacobian(vars)
     return gradient, vars
 
-def read_ods(filepath, sheet_idx=1, noheaders=False, columns=[]):
+def read_ods(filepath, sheet=1, noheaders=False, columns=[]):
     if noheaders:
-        return por.read_ods(filepath, sheet_idx, headers=False)
+        return por.read_ods(filepath, sheet, headers=False)
     if len(columns)>0:
-        return por.read_ods(filepath, sheet_idx, columns=columns)
+        return por.read_ods(filepath, sheet, columns=columns)
     return por.read_ods(filepath, 1)
 
 def __convert_to_float(frac_str):

@@ -33,16 +33,90 @@ def matanalysis(file, pretty):
     imatc = sympy.nsimplify(sympy.Matrix(np.array(mat.T.tolist())[np.array(indcols)].T), rational=True)
     imatr = sympy.nsimplify(sympy.Matrix(np.array(mat.tolist())[np.array(indrows)]), rational=True)
     results = []
-    results.append(['provided input', '-', sympy.pretty(mat) if pretty else np.array(repr(mat.tolist()))])
-    results.append(['independent cols', indcols, sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist()))])
-    results.append(['independent rows', indrows, sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist()))])
-    if sympy.shape(mat)[0] == sympy.shape(mat)[1]: 
-        results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist()))])
+    results.append(['provided input', '-', sympy.pretty(mat) if pretty else np.array(repr(mat.tolist())), 'rank=' + str(mat.rank())])
+    results.append(['independent cols', indcols, sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist())), 'full column rank' if imatc == mat else '-' ])
+    results.append(['independent rows', indrows, sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist())), 'full row rank' if imatr == mat else '-'])
+    if sympy.shape(mat)[0] == sympy.shape(mat)[1] and mat.det() != 0:
+        results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist())), 'matrix is symmetric' if mat.is_symmetric() else '-'])
     else:
-        results.append(['inverse', '-', 'matrix must be square to invert'])
-    table = [tabulate(results, headers=["insight", "descr", "matrix"], tablefmt="fancy_grid")]
+        results.append(['inverse', '-', '-', 'matrix must be square to invert'])
+    table = [tabulate(results, headers=["insight", "descr", "matrix", "comment"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
+@main.command(help_group='Part 1a')
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+def hyperplanes(file, pretty):
+    """Retruns basic & feasible solutions of an Ax<=b system. File must have the sheets named 'A' and 'b'."""
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
+    As = sympy.shape(A)
+    bs = sympy.shape(b)
+    _, indcols = A.rref()
+    if As[0] != bs[0] or bs[1] != 1:
+        click.echo("Invalid matrix input. A must be (r*c) and b (1*c).")
+        return
+    if len(indcols) != As[1]:
+        click.echo("Matrix A has not full column rank (i.e. not all columns are linearly independent).")
+        return
+    dim = As[1]
+    if not (2 <= dim <= 3):
+        click.echo(f'Can only process 2D and 3D systems, you provided {dim} dimensions.')
+        return
+    rows = As[0]
+    if dim == 2:
+        B = [(i, j) for i in range(rows) for j in range(i, rows)]
+    else:
+        B= [(i, j, k) for i in range(rows) for j in range(i, rows) for k in range(j, rows)]
+    B = [sub_list for sub_list in B if len(set(sub_list)) == dim]
+    # check for duplicates
+    uniquerows = []
+    duplicaterowindexes = []
+    for r in reversed(range(rows)):
+        checkrow = list(A.row(r)) + list(b.row(r))
+        checkrow_abs = [abs(ele) for ele in checkrow]
+        if checkrow_abs in uniquerows:
+            duplicaterowindexes.append(r)
+        else:
+            uniquerows.append(checkrow_abs)
+    results = []
+    i = 0
+    for B_ in B:
+        skip = False
+        for elem in list(B_):
+            if elem in duplicaterowindexes:
+                skip = True
+                break
+        if skip:
+            continue
+        i += 1
+        B_print = tuple([x+1 for x in list(B_)])
+        selection = f'B{i}={B_print}'
+        if dim == 2:
+            AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]))
+            bB_ = sympy.Matrix.vstack(b.row(B_[0]), b.row(B_[1]))
+        else:
+            AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]), A.row(B_[2]))
+            bB_ = sympy.Matrix.vstack(b.row(B_[0]), b.row(B_[1]), b.row(B_[2]))
+        _, indrows = AB_.T.rref()
+        if len(B_) != len(indrows):
+            AB_inv_inexist = AB_.det() == 0
+            results.append([
+                selection,
+                sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
+                'not invertible' if AB_inv_inexist else sympy.pretty(AB_.inv()) if pretty else np.array(repr(AB_.inv().tolist()))
+                , '-', '-', f'not a basic selection as\nrow(s) {set(B_print) - set([x+1 for x in list(indrows)])} are\nlinearly dependent'])
+            continue
+        xB_ = AB_.inv() * bB_
+        results.append([
+            selection,
+            sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
+            sympy.pretty(AB_.inv()) if pretty else np.array(repr(AB_.inv().tolist())),
+            sympy.pretty(bB_) if pretty else np.array(repr(bB_.tolist())),
+            sympy.pretty(xB_.T) if pretty else np.array(repr(xB_.T.tolist())),
+            'if equal to vertex\n  -> feasible\notherwise infeasible'])
+    table = [tabulate(results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid")]
+    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " + str(sorted(duplicaterowindexes)) )
 
 @main.command(help_group='Part 2a')
 @click.argument('expression')
@@ -506,4 +580,3 @@ def mincostmaxflow(csvfile, source, target):
 
 if __name__ == "__main__":
     main()
-    #indepmat(['/private/var/folders/mp/5w4gks8d5d55m00_hvsh9zxr0000gn/T/matrix0.ods'])
