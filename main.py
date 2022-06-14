@@ -10,6 +10,10 @@ import networkx as nx
 import pandas as pd
 from pyvis.network import Network
 
+# thanks & credits to https://github.com/nielstron/symplex
+from symplex.simplex import * 
+from symplex.perturb import *
+
 # ** This code lacks beauty and is (most probably) inefficient. I had little time. **
 
 @click.group(cls=SectionedHelpGroup)
@@ -118,6 +122,159 @@ def hyperplanes(file, pretty):
             'if equal to vertex\n  -> feasible\notherwise infeasible'])
     table = [tabulate(results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid")]
     click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " + str(sorted(duplicaterowindexes)))
+
+
+@main.command(help_group='Part 1a')
+@click.argument('file', type=click.Path(exists=True))
+@click.argument('basic_sel', nargs=-1)
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+def simplex(file, basic_sel, pretty):
+    """Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the sheets named 'A', 'b' and 'c'
+    which together represent the LP in inequality form as maximization problem."""
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
+    c = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='c', noheaders=True)), rational=True)
+    As = sympy.shape(A)
+    bs = sympy.shape(b)
+    _, indcols = A.rref()
+    if As[0] != bs[0] or bs[1] != 1:
+        click.echo("Invalid matrix input. A must be (r*c) and b (1*c).")
+        return
+    if As[1] != sympy.shape(c)[0]:
+        click.echo(f'Max. func. coeff. {tuple(c.tolist())} does not align with {As[1]}D matrix A.')
+        return
+    if len(indcols) != As[1]:
+        click.echo("Matrix A has not full column rank (i.e. not all columns are linearly independent).")
+        return
+    dim = As[1]
+    if not (2 <= dim <= 3):
+        click.echo(f'Can only process 2D and 3D systems, you provided {dim} dimensions.')
+        return
+    vals = [(int(i) -1) for i in list(basic_sel)]
+    B_ = tuple(vals)
+    if not (dim == len(B_)):
+        click.echo(f'The basic selection {basic_sel} does not align with the {dim}D matrix A')
+        return
+    if dim == 2:
+        AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]))
+        bB_ = sympy.Matrix.vstack(b.row(B_[0]), b.row(B_[1]))
+    else:
+        AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]), A.row(B_[2]))
+        bB_ = sympy.Matrix.vstack(b.row(B_[0]), b.row(B_[1]), b.row(B_[2]))
+
+    res = None
+    opt_val = None
+    v_star = None
+    unique = False
+    #pivot_rule_p = PivotRule.MINIMAL()
+    pivot_rule_i = PivotRule.MINIMAL()
+    B = set(B_)
+    v = AB_.inv() * bB_
+    m, n = A.shape
+    if not is_contained(v, A, b):
+        click.echo(f"{list(v)} is not contained in the specified Polygon")
+        res = SimplexResult.INVALID
+    if not is_basis(v, A, b, B):
+        click.echo(f"{B} is not a valid Basis of {list(v)}")
+        res = SimplexResult.INVALID
+    iteration = -1
+    visited_bases = {frozenset(B)}
+    results = []
+    while res is None:
+        iteration += 1
+        B_print = tuple([x + 1 for x in list(B)])
+        selection = f'B{iteration} = {B_print}'
+        N = set(range(m)) - B
+        AB = sub_matrix(A, sorted(list(B)))
+        bB = sub_matrix(b, sorted(list(B)))
+        Ainv = AB ** -1 # Â
+        if v != Ainv * bB:
+            click.echo('something is wrong')
+        s = [Ainv[:, i] for i in range(n)]
+        u = Ainv.transpose() * c
+        if all(e >= 0 for e in u[:]):  # equivalent: all(c.transpose()*s[j] <= 0 for j in range(n)):
+            # we have arrived at an optimal solution, check for uniqueness
+            if all(e > 0 for e in u[:]):
+                unique = True
+            res = SimplexResult.OPTIMAL
+            v_star = v
+            opt_val = (c.transpose() * v)[0]
+        else:
+            # we can still improve along some edge
+            #valid_p = [p for p in range(n) if (c.transpose() * s[p])[0] > 0]
+            ##p = pivot_rule_p(valid_p)
+            p = np.array(u.tolist()).argmin(axis=0)[0]
+            if iteration == 1:
+                p += 1
+            d = (-s[p])
+            d_idx = list(B)[p]
+            Ad = A * d
+            R = [i for i in N if Ad[i] > 0]
+            if len(R) == 0:
+                # the result in unbounded in the direction of the cost function
+                res = SimplexResult.UNBOUNDED
+                opt_val = inf
+            else:
+                # we have found a constraint for improvement along which we can improve costs
+                Av = A * v
+                step_sizes = [(b[i] - Av[i]) / Ad[i] for i in R]
+                lam = min(step_sizes)
+                i_in_candidates = [i for i, s in zip(R, step_sizes) if s == lam]
+                i_in = pivot_rule_i(i_in_candidates, A=A, b=b, v=v, B=B, mA_Bm1=Ainv, s=d, R=R)
+                i_out = list(B)[p]
+                B_old = B
+                B = B - {i_out} | {i_in}
+                B_old_print = set([x + 1 for x in list(B_old)])
+                B_print = set([x + 1 for x in list(B)])
+                selection_new = f'B{iteration+1} = {B_print}\nout = j = {i_out+1}\nin = k = {i_in+1}' + \
+                                f'\n\nwrite as:\n' \
+                                f'{B_old_print} - {set([i_out+1])}\n∪\n{set([i_in+1])}\n= {B_print}'
+                lam_print = f'{lam} = λ = min({step_sizes})\n'\
+                            f'i.e. selection\nk = {tuple([x + 1 for x in list(R)])}\n'\
+                            f'cand. sel. = {tuple([x + 1 for x in list(i_in_candidates)])}\n'\
+                            f'took k = {i_in+1}'
+                v_old = v
+                v = v + lam * d
+                if B in visited_bases:
+                    # Basis visited second time, detecting cycle and abort
+                    res = SimplexResult.CYCLE
+                visited_bases.add(frozenset(B))
+
+        if not res is None:
+            v = v_star
+        results.append([iteration,
+                         selection,
+                         sympy.pretty(AB) if pretty else np.array(repr(AB.tolist())),
+                         sympy.pretty(bB) if pretty else np.array(repr(bB.tolist())),
+                         sympy.pretty(Ainv) if pretty else np.array(repr(Ainv.tolist())),
+                         sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
+                         sympy.pretty(v_old) if pretty else np.array(repr(v_old.tolist())),
+                         sympy.pretty(u) if pretty else np.array(repr(u.tolist())),
+                         'DONE' if not res is None else f'-Â{d_idx+1} = \n\n{sympy.pretty(d) if pretty else np.array(repr(d.tolist()))}',
+                         'DONE' if not res is None else sympy.pretty(Av) if pretty else np.array(repr(Av.tolist())),
+                         'DONE' if not res is None else sympy.pretty(Ad) if pretty else np.array(repr(Ad.tolist())),
+                         'DONE' if not res is None else sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
+                         'DONE' if not res is None else lam_print,
+                         'DONE' if not res is None else selection_new,
+                         sympy.pretty(v) if pretty else np.array(repr(v.tolist())),
+                         ])
+
+    table = [tabulate(results,
+                      headers=['iter', 'selection', 'AB', 'bB', 'Â=AB^(-1)', 'c', 'v = Â*bB', 'u = c*Â^(T)', 'd',
+                               'Av', 'Ad', 'b', 'λ = min(stepsizes)', 'selection_new', 'v\''],
+                      tablefmt='fancy_grid')]
+    click.echo("\n".join(table) +
+               f'\n\nresult = {res}'
+               f'\nv* = {np.array(repr(v_star.tolist()))}'
+               f'\noptimal_value =  c^T * v = {opt_val} (maximization problem)'
+               f'\noptimal_value = -c^T * v = {(-1 * c.transpose() * v)[0]} (minimization problem)'
+               f'\nunique = {unique}')
+
+
+
+
+
+
 
 @main.command(help_group='Part 2a')
 @click.argument('expression')

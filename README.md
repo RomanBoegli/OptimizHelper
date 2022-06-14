@@ -146,6 +146,34 @@ $ python3 main.py hyperplanes /path/to/FileWithSheets_A_b.ods --pretty
  *skipped rows due to duplicate: [0, 2]
 ```
 
+Find optimum using Simplex with all itermediate results. Matrices are provided via an ODF-file with sheets named 'A', 'b' and 'c'. Together they must represent the LP in *inequality form* as *maximization problem*. A basic selection of hyperplanes of the starting point must be provided. In the example below it is $B={1, 5}$.
+```console
+$ python3 main.py simplex /path/to/matrix_A_b_c.ods 1 5 --pretty
+╒════════╤═════════════╤══════════╤══════╤══════════════╤══════╤════════════╤═══════════════╤════════╤══════╤══════╤══════╤══════════════════════╤═════════════════╤══════╕
+│   iter │ selection   │ AB       │ bB   │ Â=AB^(-1)    │ c    │ v = Â*bB   │ u = c*Â^(T)   │ d      │ Av   │ Ad   │ b    │ λ = min(stepsizes)   │ selection_new   │ v'   │
+╞════════╪═════════════╪══════════╪══════╪══════════════╪══════╪════════════╪═══════════════╪════════╪══════╪══════╪══════╪══════════════════════╪═════════════════╪══════╡
+│      0 │ B0 = (1, 5) │ ⎡-1  -2⎤ │ ⎡-2⎤ │ ⎡-1  2 ⎤     │ ⎡-3⎤ │ ⎡2⎤        │ ⎡3 ⎤          │ -Â5 =  │ ⎡-2⎤ │ ⎡0 ⎤ │ ⎡-2⎤ │ 1 = λ = min([1, 2])  │ B1 = {1, 2}     │ ⎡0⎤  │
+│        │             │ ⎢      ⎥ │ ⎢  ⎥ │ ⎢      ⎥     │ ⎢  ⎥ │ ⎢ ⎥        │ ⎢  ⎥          │        │ ⎢  ⎥ │ ⎢  ⎥ │ ⎢  ⎥ │ i.e. selection       │ out = j = 5     │ ⎢ ⎥  │
+│        │             │ ⎣0   -1⎦ │ ⎣0 ⎦ │ ⎣0   -1⎦     │ ⎣-1⎦ │ ⎣0⎦        │ ⎣-5⎦          │ ⎡-2⎤   │ ⎢-2⎥ │ ⎢3 ⎥ │ ⎢1 ⎥ │ k = (2, 4)           │ in = k = 2      │ ⎣1⎦  │
+│        │             │          │      │              │      │            │               │ ⎢  ⎥   │ ⎢  ⎥ │ ⎢  ⎥ │ ⎢  ⎥ │ cand. sel. = (2,)    │                 │      │
+│        │             │          │      │              │      │            │               │ ⎣1 ⎦   │ ⎢2 ⎥ │ ⎢-2⎥ │ ⎢3 ⎥ │ took k = 2           │ write as:       │      │
+│        │             │          │      │              │      │            │               │        │ ⎢  ⎥ │ ⎢  ⎥ │ ⎢  ⎥ │                      │ {1, 5} - {5}    │      │
+│        │             │          │      │              │      │            │               │        │ ⎢0 ⎥ │ ⎢1 ⎥ │ ⎢2 ⎥ │                      │ ∪               │      │
+│        │             │          │      │              │      │            │               │        │ ⎢  ⎥ │ ⎢  ⎥ │ ⎢  ⎥ │                      │ {2}             │      │
+│        │             │          │      │              │      │            │               │        │ ⎣0 ⎦ │ ⎣-1⎦ │ ⎣0 ⎦ │                      │ = {1, 2}        │      │
+├────────┼─────────────┼──────────┼──────┼──────────────┼──────┼────────────┼───────────────┼────────┼──────┼──────┼──────┼──────────────────────┼─────────────────┼──────┤
+│      1 │ B1 = (1, 2) │ ⎡-1  -2⎤ │ ⎡-2⎤ │ ⎡-1/3  -2/3⎤ │ ⎡-3⎤ │ ⎡2⎤        │ ⎡4/3⎤         │ DONE   │ DONE │ DONE │ DONE │ DONE                 │ DONE            │ ⎡0⎤  │
+│        │             │ ⎢      ⎥ │ ⎢  ⎥ │ ⎢          ⎥ │ ⎢  ⎥ │ ⎢ ⎥        │ ⎢   ⎥         │        │      │      │      │                      │                 │ ⎢ ⎥  │
+│        │             │ ⎣-1  1 ⎦ │ ⎣1 ⎦ │ ⎣-1/3  1/3 ⎦ │ ⎣-1⎦ │ ⎣0⎦        │ ⎣5/3⎦         │        │      │      │      │                      │                 │ ⎣1⎦  │
+╘════════╧═════════════╧══════════╧══════╧══════════════╧══════╧════════════╧═══════════════╧════════╧══════╧══════╧══════╧══════════════════════╧═════════════════╧══════╛
+
+result = SimplexResult.OPTIMAL
+v* = [[0], [1]]
+optimal_value =  c^T * v = -1 (maximization problem)
+optimal_value = -c^T * v = 1 (minimization problem)
+unique = True
+```
+
 </br>
 
 ## Part 2
