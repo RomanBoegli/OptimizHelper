@@ -43,11 +43,12 @@ def matanalysis(file, pretty):
     table = [tabulate(results, headers=["insight", "descr", "matrix", "comment"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
+
 @main.command(help_group='Part 1a')
 @click.argument('file', type=click.Path(exists=True))
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
 def hyperplanes(file, pretty):
-    """Retruns basic & feasible solutions of an Ax<=b system. File must have the sheets named 'A' and 'b'."""
+    """Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions. File must have the sheets named 'A' and 'b'."""
     A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
     b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
     As = sympy.shape(A)
@@ -72,7 +73,7 @@ def hyperplanes(file, pretty):
     # check for duplicates
     uniquerows = []
     duplicaterowindexes = []
-    for r in reversed(range(rows)):
+    for r in range(rows):
         checkrow = list(A.row(r)) + list(b.row(r))
         checkrow_abs = [abs(ele) for ele in checkrow]
         if checkrow_abs in uniquerows:
@@ -116,7 +117,7 @@ def hyperplanes(file, pretty):
             sympy.pretty(xB_.T) if pretty else np.array(repr(xB_.T.tolist())),
             'if equal to vertex\n  -> feasible\notherwise infeasible'])
     table = [tabulate(results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid")]
-    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " + str(sorted(duplicaterowindexes)) )
+    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " + str(sorted(duplicaterowindexes)))
 
 @main.command(help_group='Part 2a')
 @click.argument('expression')
