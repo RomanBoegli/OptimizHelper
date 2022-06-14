@@ -2,7 +2,7 @@
 A tiny command line interface tool for solving (non) integer & network optimization problems.
 
 <p align="left">
-  <img width="80%" alt="cli" src="https://user-images.githubusercontent.com/22320200/172475394-6b8ac2f4-853d-489c-9176-a1f09def0449.png">
+  <img width="80%" alt="cli" src="https://user-images.githubusercontent.com/22320200/173684684-fe39d9ac-a9f5-4986-b34c-6179c7e9c6b8.png">
 </p>
 
 
