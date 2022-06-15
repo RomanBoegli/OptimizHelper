@@ -204,8 +204,6 @@ def simplex(file, basic_sel, pretty):
             #valid_p = [p for p in range(n) if (c.transpose() * s[p])[0] > 0]
             ##p = pivot_rule_p(valid_p)
             p = np.array(u.tolist()).argmin(axis=0)[0]
-            if iteration == 1:
-                p += 1
             d = (-s[p])
             d_idx = list(B)[p]
             Ad = A * d
