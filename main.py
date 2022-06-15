@@ -188,6 +188,7 @@ def simplex(file, basic_sel, pretty):
         AB = sub_matrix(A, sorted(list(B)))
         bB = sub_matrix(b, sorted(list(B)))
         Ainv = AB ** -1 # Â
+        v_old = v
         if v != Ainv * bB:
             click.echo('something is wrong')
         s = [Ainv[:, i] for i in range(n)]
@@ -231,7 +232,7 @@ def simplex(file, basic_sel, pretty):
                             f'i.e. selection\nk = {tuple([x + 1 for x in list(R)])}\n'\
                             f'cand. sel. = {tuple([x + 1 for x in list(i_in_candidates)])}\n'\
                             f'took k = {i_in+1}'
-                v_old = v
+
                 v = v + lam * d
                 if B in visited_bases:
                     # Basis visited second time, detecting cycle and abort
@@ -263,7 +264,7 @@ def simplex(file, basic_sel, pretty):
                       tablefmt='fancy_grid')]
     click.echo("\n".join(table) +
                f'\n\nresult = {res}'
-               f'\nv* = {np.array(repr(v_star.tolist()))}'
+               f'\nv* = {np.array(repr(v_star.tolist())) if not v_star is None else "none"}'
                f'\noptimal_value =  c^T * v = {opt_val} (maximization problem)'
                f'\noptimal_value = -c^T * v = {(-1 * c.transpose() * v)[0]} (minimization problem)'
                f'\nunique = {unique}')
