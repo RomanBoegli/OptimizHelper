@@ -144,7 +144,7 @@ $ python3 main.py hyperplanes /path/to/FileWithSheets_A_b.ods --pretty
 │                │ ⎢          ⎥ │ ⎢          ⎥   │ ⎢ ⎥   │           │                          │
 │                │ ⎣0   0   -1⎦ │ ⎣0   0   -1⎦   │ ⎣0⎦   │           │                          │
 ╘════════════════╧══════════════╧════════════════╧═══════╧═══════════╧══════════════════════════╛
- *skipped rows due to duplicate: [0, 2]
+ *skipped rows due to duplicate: {2, 4}
 ```
 
 Find optimum using Simplex with all itermediate results. Matrices are provided via an ODF-file with sheets named 'A', 'b' and 'c'. Together they must represent the LP in *inequality form* as *maximization problem*. A basic selection of hyperplanes of the starting point must be provided. In the example below it is $B={4, 5}$ (see image).

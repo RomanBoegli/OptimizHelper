@@ -121,7 +121,7 @@ def hyperplanes(file, pretty):
             sympy.pretty(xB_.T) if pretty else np.array(repr(xB_.T.tolist())),
             'if equal to vertex\n  -> feasible\notherwise infeasible'])
     table = [tabulate(results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid")]
-    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " + str(sorted(duplicaterowindexes)))
+    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " +  str(set([x+1 for x in sorted(duplicaterowindexes)])))
 
 
 @main.command(help_group='Part 1a')
