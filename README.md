@@ -1,4 +1,4 @@
-# OptimizCalculator
+# OptimizHelper
 A tiny command line interface tool for solving (non) integer & network optimization problems.
 
 <p align="left">
