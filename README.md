@@ -212,6 +212,7 @@ $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5
 result saved as: ./plot.png
 ```
 
+<img width="40%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175778985-2357b8b7-40ea-4708-bbda-7e243b1868a5.png">
 
 </br>
 
