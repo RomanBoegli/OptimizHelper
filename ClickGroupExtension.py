@@ -5,6 +5,7 @@ class SectionedHelpGroup(click.Group):
 
     def __init__(self, *args, **kwargs):
         self.grouped_commands = kwargs.pop('grouped_commands', {})
+        context_settings = dict(max_content_width=2000, help_option_names=['-h', '--help'])
         commands = {}
         for group, command_list in self.grouped_commands.items():
             for cmd in command_list:
@@ -12,7 +13,7 @@ class SectionedHelpGroup(click.Group):
                 commands[cmd.name] = cmd
 
         super(SectionedHelpGroup, self).__init__(
-            *args, commands=commands, **kwargs)
+            *args, commands=commands, context_settings=context_settings, **kwargs)
 
     def command(self, *args, **kwargs):
         help_group = kwargs.pop('help_group')
@@ -34,8 +35,8 @@ class SectionedHelpGroup(click.Group):
                 if cmd is None or cmd.help_group != group:
                     continue
                 help = cmd.get_help(ctx).split('\n\n')[1].strip() or ''
-                if len(help) > 52:
-                    help = help[:52].strip() + "..."
+                if len(help) > 80:
+                    help = help[:77].strip() + "..."
                 rows.append((subcommand.ljust(15), help))
 
             if rows:
