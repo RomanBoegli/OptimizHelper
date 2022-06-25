@@ -270,8 +270,47 @@ def simplex(file, basic_sel, pretty):
                f'\nunique = {unique}')
 
 
+@main.command(help_group='Part 1a')
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--xlim', '-x', default=None, type=(int, int), multiple=False, help='set x-axis range')
+@click.option('--ylim', '-y', default=None, type=(int, int), multiple=False, help='set y-axis range')
+def plot(file, xlim, ylim):
+    """Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'."""
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
+    As = sympy.shape(A)
+    bs = sympy.shape(b)
+    _, indcols = A.rref()
+    if As[0] != bs[0] or bs[1] != 1:
+        click.echo("Invalid matrix input. A must be (r*c) and b (1*c).")
+        return
+    dim = As[1]
+    if (dim != 2):
+        click.echo(f'Can only process 2D systems, you provided {dim} dimensions.')
+        return
+    x, y = sympy.symbols('x y')
+    rows = As[0]
+    inequalities = []
+    equalities = []
+    for r in range(rows):
+        inequalities.append(A.row(r)[0]*x + A.row(r)[1]*y <= b[r])
+        equalities.append(sympy.Eq(A.row(r)[0]*x + A.row(r)[1]*y, b[r]))
 
+    polyhedron = inequalities[0]
+    for r in range(1, rows):
+        polyhedron = sympy.And(polyhedron, inequalities[r])
+    p = sympy.plot_implicit(polyhedron, show=False)
+    for eq in equalities:
+        p1 = sympy.plot_implicit(eq, line_color='r', show=False)
+        p.extend(p1)
+    if not xlim is None:
+        p.__setattr__('xlim', xlim)
+    if not ylim is None:
+        p.__setattr__('ylim', ylim)
 
+    image = './plot.png'
+    p.save(image)
+    click.echo("result saved as: " + image)
 
 
 

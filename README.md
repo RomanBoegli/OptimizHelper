@@ -27,6 +27,7 @@ Options:
 Part 1a:
   hyperplanes      Retruns basic & feasible solutions of an Ax<=b syste...
   matanalysis      Basic matrix analysis insights.
+  plot             Plots a 2D system of inequalities provided in Ax<=b...
   simplex          Applies Simplex on an Ax<=b system with 2 or 3 dimen...
 
 Part 2a:
@@ -53,6 +54,10 @@ Part 2b:
 ````
 
 ## Part 1a
+
+### Linear Optimizations Problems
+
+#### Matrix Analysis
 Get linearly independent components and inversion of matrix:
 ```console
 $ python3 main.py matanalysis /path/to/matrix.ods --pretty
@@ -77,7 +82,7 @@ $ python3 main.py matanalysis /path/to/matrix.ods --pretty
 ╘══════════════════╧═════════╧═════════════╛
 ```
 
-
+#### Basic Selection of Hyperplanes
 Get basic & feasible solutions of an Ax<=b system. Matrices are provided via an ODF-file with two sheets, namely 'A' and 'b':
 ```console
 $ python3 main.py hyperplanes /path/to/FileWithSheets_A_b.ods --pretty
@@ -151,7 +156,7 @@ Find optimum using Simplex with all itermediate results. Matrices are provided v
 
 <img width="40%" alt="simplex" src="https://user-images.githubusercontent.com/22320200/173892051-4d9bb173-3889-45e4-8a2d-dbb09be3275e.png">
 
-
+#### Simplex Algorithm
 ```console
 $ python3 main.py simplex /path/to/matrix_A_b_c.ods 1 5 --pretty
 ╒════════╤═════════════╤══════════╤══════╤══════════════╤═════╤════════════╤═══════════════╤════════╤══════╤════════╤══════╤════════════════════════════╤═════════════════╤══════╕
@@ -198,6 +203,15 @@ optimal_value =  c^T * v = 33 (maximization problem)
 optimal_value = -c^T * v = -33 (minimization problem)
 unique = True
 ```
+
+
+#### Plot System of Inequalities
+Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'.
+```console
+$ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5
+result saved as: ./plot.png
+```
+
 
 </br>
 
