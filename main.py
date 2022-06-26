@@ -272,8 +272,8 @@ def simplex(file, basic_sel, pretty):
 
 @main.command(help_group='Part 1a')
 @click.argument('file', type=click.Path(exists=True))
-@click.option('--xlim', '-x', default=None, type=(int, int), multiple=False, help='set x-axis range')
-@click.option('--ylim', '-y', default=None, type=(int, int), multiple=False, help='set y-axis range')
+@click.option('--xlim', '-x', default=(-10, 10), type=(int, int), multiple=False, help='set x-axis range')
+@click.option('--ylim', '-y', default=(-10, 10), type=(int, int), multiple=False, help='set y-axis range')
 @click.option('--gomory', '-gc', default=None, type=(float, int, float, int), multiple=False, help='params to combine two inequalities')
 def plot(file, xlim, ylim, gomory):
     """Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'."""
@@ -300,7 +300,8 @@ def plot(file, xlim, ylim, gomory):
     polyhedron = inequalities[0]
     for r in range(1, rows):
         polyhedron = sympy.And(polyhedron, inequalities[r])
-    p = sympy.plot_implicit(polyhedron, line_color='grey', show=False)
+    click.echo(polyhedron)
+    p = sympy.plot_implicit(polyhedron, x_var=(x, xlim[0], xlim[1]), y_var=(y, ylim[0], ylim[1]), line_color='grey', show=False)
     i = 0
     for eq in equalities:
         u = sympy.solve(eq, y)
@@ -326,11 +327,9 @@ def plot(file, xlim, ylim, gomory):
         gc_result = f'\ngc-cut with {c1}*({gomory[1]}) +  {c2}*({gomory[3]}) \n' \
                     f'= ({c1}*[{sympy.pretty(h1.args[0])}]) + ({c2}*[{sympy.pretty(h2.args[0])}]) ≤ ⌊({c1}*[{sympy.pretty(h1.args[1])}]) + ({c2}*[{sympy.pretty(h2.args[1])}])⌋ \n' \
                     f'= {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])} '
-    if not xlim is None:
-        p.__setattr__('xlim', xlim)
-    if not ylim is None:
-        p.__setattr__('ylim', ylim)
 
+    p.__setattr__('xlim', xlim)
+    p.__setattr__('ylim', ylim)
     p.legend = True
     image = './plot.png'
     p.save(image)
