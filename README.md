@@ -153,11 +153,11 @@ $ python3 main.py hyperplanes /path/to/FileWithSheets_A_b.ods --pretty
  *skipped rows due to duplicate: {2, 4}
 ```
 
+#### Simplex Algorithm
 Find optimum using Simplex with all itermediate results. Matrices are provided via an ODF-file with sheets named 'A', 'b' and 'c'. Together they must represent the LP in *inequality form* as *maximization problem*. A basic selection of hyperplanes of the starting point must be provided. In the example below it is $B={4, 5}$ (see image).
 
 <img width="40%" alt="simplex" src="https://user-images.githubusercontent.com/22320200/173892051-4d9bb173-3889-45e4-8a2d-dbb09be3275e.png">
 
-#### Simplex Algorithm
 ```console
 $ python3 main.py simplex /path/to/matrix_A_b_c.ods 1 5 --pretty
 ╒════════╤═════════════╤══════════╤══════╤══════════════╤═════╤════════════╤═══════════════╤════════╤══════╤════════╤══════╤════════════════════════════╤═════════════════╤══════╕
