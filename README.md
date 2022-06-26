@@ -210,8 +210,16 @@ Plots a 2D system of inequalities provided in Ax<=b form. File must have the she
 $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5
 result saved as: ./plot.png
 ```
-
 <img width="40%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175778985-2357b8b7-40ea-4708-bbda-7e243b1868a5.png">
+
+
+Also possible to show an instructed Gomory Chvatal Cut provided as $(c1, h1, c2, h2)$ which will result in a new hyperplane $h3=c1*h1 + c2*h2$. The new hyperplane is shown as black line and does not appear in the legend.
+```console
+$ python3 main.py plot /path/to/FileWithSheets_A_b.ods -gc 0.2 1 0.1 2   
+result saved as: ./plot.png
+```
+'/Users/rbo/Library/Mobile Documents/com~apple~CloudDocs/MSE OST/S2/FTP_Optimiz_C/PART 1 - FUSEK/Exercises/ExerciseSeries07/1a.ods'
+
 
 </br>
 

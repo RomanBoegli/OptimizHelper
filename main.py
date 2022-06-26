@@ -274,7 +274,8 @@ def simplex(file, basic_sel, pretty):
 @click.argument('file', type=click.Path(exists=True))
 @click.option('--xlim', '-x', default=None, type=(int, int), multiple=False, help='set x-axis range')
 @click.option('--ylim', '-y', default=None, type=(int, int), multiple=False, help='set y-axis range')
-def plot(file, xlim, ylim):
+@click.option('--gomory', '-gc', default=None, type=(float, int, float, int), multiple=False, help='params to combine two inequalities')
+def plot(file, xlim, ylim, gomory):
     """Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'."""
     A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
     b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
@@ -299,18 +300,37 @@ def plot(file, xlim, ylim):
     polyhedron = inequalities[0]
     for r in range(1, rows):
         polyhedron = sympy.And(polyhedron, inequalities[r])
-    p = sympy.plot_implicit(polyhedron, show=False)
+    p = sympy.plot_implicit(polyhedron, line_color='grey', show=False)
+    i = 0
     for eq in equalities:
-        p1 = sympy.plot_implicit(eq, line_color='r', show=False)
+        u = sympy.solve(eq, y)
+        if len(u) == 0:
+            eq = sympy.Eq(eq.args[0] + 0.00000000000000001*y, eq.args[1])
+            u = sympy.solve(eq, y)
+        p1 = sympy.plot(u[0], label=f'({i+1}) {str(inequalities[i])}', legend=True, show=False)
         p.extend(p1)
+        i += 1
+    gc_result = ''
+    if not gomory is None:
+        c1 = gomory[0]
+        h1 = equalities[gomory[1] - 1]
+        c2 = gomory[2]
+        h2 = equalities[gomory[3] - 1]
+        f_gc = sympy.Eq(c1 * h1.args[0] + c2 * h2.args[0], sympy.floor(c1 * h1.args[1] + c2 * h2.args[1]))
+        p_gc = sympy.plot_implicit(f_gc, line_color="black", show=False)
+        p.extend(p_gc)
+        gc_result = f'\ngc-cut with {c1}*({gomory[1]}) +  {c2}*({gomory[3]}) \n' \
+                    f'= ({c1}*[{sympy.pretty(h1.args[0])}]) + ({c2}*[{sympy.pretty(h2.args[0])}]) ≤ ⌊({c1}*[{sympy.pretty(h1.args[1])}]) + ({c2}*[{sympy.pretty(h2.args[1])}])⌋ \n' \
+                    f'= {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])} '
     if not xlim is None:
         p.__setattr__('xlim', xlim)
     if not ylim is None:
         p.__setattr__('ylim', ylim)
 
+    p.legend = True
     image = './plot.png'
     p.save(image)
-    click.echo("result saved as: " + image)
+    click.echo("result saved as: " + image + gc_result)
 
 
 
