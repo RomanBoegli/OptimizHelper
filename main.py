@@ -536,7 +536,7 @@ def succhalv(expression, values):
 @click.option('--pretty', '-p', is_flag=True, help='prettier print output')
 @click.option('--rational', '-r', is_flag=True, help='rational numbers')
 def broyden(expression, values, steps, pretty, rational):
-    """Iterating optimization using Broyden's method."""
+    """Iterating optimization using Broyden's method given a function and starting value."""
     expr = hf.str_to_expression(expression)
     vars = list(sympy.ordered(expr.free_symbols))
     vals = [hf.__convert_to_float(i) for i in list(values)]
@@ -593,6 +593,60 @@ def broyden(expression, values, steps, pretty, rational):
                         sympy.pretty(xy_new) if pretty else np.array(xy_new[0:])])
         x_point_histroy.append(new_point)
         point = new_point
+        step += 1
+
+    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    click.echo("\n".join(table))
+
+@main.command(help_group='Part 2a')
+@click.option('--startingpoint', '-sp', default=None, type=(float, float), multiple=False, help='starting point')
+@click.option('--gradient', '-g', default=None, type=(float, float), multiple=True, help='gradient ∇f(X0, Y0)')
+@click.option('--hessian_inv', '-h', default=None, type=(float, float, float, float), multiple=False, help='H^(-1)_(X0, Y0) in form of (c1, c2, c3, c4) going from left to right, row by row')
+@click.option('--steps', '-s', default=3, type=int, help='amount of steps (for each step, a --gradient must be passed)')
+@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@click.option('--rational', '-r', is_flag=True, help='rational numbers')
+def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
+    """Iterating optimization using Broyden's method given the interim results starting point, gradient, and inverted hessian matrix."""
+    step = 0
+    results = []
+    x_point_histroy = []
+    x_gradient_histroy = []
+    point = sympy.Matrix([startingpoint[0], startingpoint[1]])
+    x_point_histroy.append(point)
+    d = []
+    g = []
+    A = []
+    if steps > len(gradient):
+        steps = len(gradient)
+    while step < int(steps):
+        G = sympy.Matrix([[gradient[step][0], gradient[step][1]]])
+        x_gradient_histroy.append(G)
+        if step == 0:
+            # inverse hessian
+            A = sympy.Matrix([ [hessian_inv[0], hessian_inv[1]], [hessian_inv[2], hessian_inv[3]] ])
+        else:
+            # approximation
+            d = x_point_histroy[-1] - x_point_histroy[-2]
+            g = x_gradient_histroy[-1] - x_gradient_histroy[-2]
+            upper = (A * g.T - d) * d.T * A
+            lower = d.T * A * g.T
+            A = A - sympy.Matrix(np.divide(upper, lower))
+        new_point = x_point_histroy[-1] - A * G.T
+
+        xiyi = sympy.nsimplify(x_point_histroy[-1], tolerance=1e-10, rational=True) if rational else x_point_histroy[-1]
+        di = (sympy.nsimplify(d, tolerance=1e-10, rational=True) if len(d) > 0 else d) if rational else d
+        gi = (sympy.nsimplify(g, tolerance=1e-10, rational=True) if len(g) > 0 else g) if rational else g
+        Ai = sympy.nsimplify(A, tolerance=1e-10, rational=True) if rational else A
+        Gi = sympy.nsimplify(G.T, tolerance=1e-10, rational=True) if rational else G.T
+        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)  if rational else new_point
+        results.append([step,
+                        sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
+                        sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
+                        sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
+                        sympy.pretty(Ai) if pretty else np.array(Ai),
+                        sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
+                        sympy.pretty(xy_new) if pretty else np.array(xy_new[0:])])
+        x_point_histroy.append(new_point)
         step += 1
 
     table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]

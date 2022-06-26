@@ -31,7 +31,8 @@ Part 1a:
 
 Part 2a:
   aitken           Returns the Aitken sequence for a value series of at least 3.
-  broyden          Iterating optimization using Broyden's method.
+  broyden          Iterating optimization using Broyden's method given a function and starting v...
+  broydeninter     Iterating optimization using Broyden's method given the interim results start...
   diffbeauty       Returns the derivative in pretty form.
   difftree         Returns all partial derivatives as a tree.
   evaluate         Evaluates a function with a given substitution (assumes alphabetic order).
@@ -49,7 +50,7 @@ Part 2b:
   mincostmaxflow   Returns a maximum s-t flow of minimum cost based on provided edge list.
   mincut           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
   mst              Returns the minimum spanning tree.
-  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df').
+  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
 ````
 
 ## Part 1a
@@ -397,6 +398,28 @@ $ python3 main.py broyden '(x^2-2xy+x)^2' 2 2 --rational
 │     │               │                │                                         │  [-6263/43550 143467/2787200]] │                         │                     │
 ╘═════╧═══════════════╧════════════════╧═════════════════════════════════════════╧════════════════════════════════╧═════════════════════════╧═════════════════════╛
 ```
+
+There is also the possibility to pass the interim results in case the original function is not known. In order to have two iteration, two gradients must be passed in the right order. The hessian inverse matrix is interpreted as a $2*2$ matrix going row-wise from left to right.
+```console
+$ python3 main.py broydeninter --startingpoint 3.3 0.4 --gradient 1 0 --gradient 0 1 --hessian_inv 5 0 0 2 -p -r
+╒═════╤════════════╤════════╤════════╤════════╤══════════════╤════════════════════╕
+│   i │ [Xi, Yi]   │ di     │ gi     │ Ai     │ ∇f(Xi, Yi)   │ [X(i+1), Y(i+1)]   │
+╞═════╪════════════╪════════╪════════╪════════╪══════════════╪════════════════════╡
+│   0 │ ⎡33 ⎤      │ []     │ []     │ ⎡5  0⎤ │ ⎡1⎤          │ ⎡-17 ⎤             │
+│     │ ⎢── ⎥      │        │        │ ⎢    ⎥ │ ⎢ ⎥          │ ⎢────⎥             │
+│     │ ⎢10 ⎥      │        │        │ ⎣0  2⎦ │ ⎣0⎦          │ ⎢ 10 ⎥             │
+│     │ ⎢   ⎥      │        │        │        │              │ ⎢    ⎥             │
+│     │ ⎣2/5⎦      │        │        │        │              │ ⎣2/5 ⎦             │
+├─────┼────────────┼────────┼────────┼────────┼──────────────┼────────────────────┤
+│   1 │ ⎡-17 ⎤     │ [-5 0] │ [-1 1] │ ⎡5  0⎤ │ ⎡0⎤          │ ⎡-17 ⎤             │
+│     │ ⎢────⎥     │        │        │ ⎢    ⎥ │ ⎢ ⎥          │ ⎢────⎥             │
+│     │ ⎢ 10 ⎥     │        │        │ ⎣2  2⎦ │ ⎣1⎦          │ ⎢ 10 ⎥             │
+│     │ ⎢    ⎥     │        │        │        │              │ ⎢    ⎥             │
+│     │ ⎣2/5 ⎦     │        │        │        │              │ ⎣-8/5⎦             │
+╘═════╧════════════╧════════╧════════╧════════╧══════════════╧════════════════════╛
+```
+
+
 
 #### Aitken
 Optimize a value series using Aitken sequence:
