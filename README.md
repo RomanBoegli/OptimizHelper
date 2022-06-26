@@ -211,7 +211,7 @@ $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5
 result saved as: ./plot.png
 ```
 
-Also possible to show an instructed Gomory Chvatal Cut provided as $(c1, h1, c2, h2)$ which will result in a new hyperplane $h3 = c1 * h1 + c2 * h2$. The new hyperplane is shown as black line and is printed to the console as part of the result, however, does not appear in the legend. See image below (right plot).
+Also possible to show an instructed Gomory Chvatal Cut provided as $(c1, h1, c2, h2)$ which will result in a new hyperplane $h3 = c1 * h1 + c2 * h2$. See image below (right plot).
 ```console
 $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5 -gc 0.2 1 0.1 2
 result saved as: ./plot.png

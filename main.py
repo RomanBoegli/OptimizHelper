@@ -305,7 +305,7 @@ def plot(file, xlim, ylim, gomory):
     for eq in equalities:
         u = sympy.solve(eq, y)
         if len(u) == 0:
-            eq = sympy.Eq(eq.args[0] + 0.00000000000000001*y, eq.args[1])
+            eq = sympy.Eq(eq.args[0] + 0.00000000000000001 * y, eq.args[1])
             u = sympy.solve(eq, y)
         p1 = sympy.plot(u[0], label=f'({i+1}) {str(inequalities[i])}', legend=True, show=False)
         p.extend(p1)
@@ -317,8 +317,12 @@ def plot(file, xlim, ylim, gomory):
         c2 = gomory[2]
         h2 = equalities[gomory[3] - 1]
         f_gc = sympy.Eq(c1 * h1.args[0] + c2 * h2.args[0], sympy.floor(c1 * h1.args[1] + c2 * h2.args[1]))
-        p_gc = sympy.plot_implicit(f_gc, line_color="black", show=False)
-        p.extend(p_gc)
+        u = sympy.solve(f_gc, y)
+        if len(u) == 0:
+            eq = sympy.Eq(f_gc.args[0] + 0.00000000000000001 * y, f_gc.args[1])
+            u = sympy.solve(eq, y)
+        p1 = sympy.plot(u[0], label=f'gc(({gomory[1]})+({gomory[3]})) {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])}', legend=True, show=False)
+        p.extend(p1)
         gc_result = f'\ngc-cut with {c1}*({gomory[1]}) +  {c2}*({gomory[3]}) \n' \
                     f'= ({c1}*[{sympy.pretty(h1.args[0])}]) + ({c2}*[{sympy.pretty(h2.args[0])}]) ≤ ⌊({c1}*[{sympy.pretty(h1.args[1])}]) + ({c2}*[{sympy.pretty(h2.args[1])}])⌋ \n' \
                     f'= {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])} '
