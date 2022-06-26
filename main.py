@@ -275,7 +275,8 @@ def simplex(file, basic_sel, pretty):
 @click.option('--xlim', '-x', default=(-10, 10), type=(int, int), multiple=False, help='set x-axis range')
 @click.option('--ylim', '-y', default=(-10, 10), type=(int, int), multiple=False, help='set y-axis range')
 @click.option('--gomory', '-gc', default=None, type=(float, int, float, int), multiple=False, help='params to combine two inequalities')
-def plot(file, xlim, ylim, gomory):
+@click.option('--show', '-s', is_flag=True, help='show plot in interactive window')
+def plot(file, xlim, ylim, gomory, show):
     """Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'."""
     A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
     b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
@@ -334,6 +335,8 @@ def plot(file, xlim, ylim, gomory):
     image = './plot.png'
     p.save(image)
     click.echo("result saved as: " + image + gc_result)
+    if show:
+        p.show()
 
 
 
@@ -518,7 +521,7 @@ def succhalv(expression, values):
             f_result_better = expr.subs(zip(vars, [x1, y1]))
             results.append(['B*', B_star, x1y1, hf.__rstrip_zeros(f_result_better), ' - '])
             table = [tabulate(results,
-                              headers=["i", "B", "(x1, y1)", "f(x1, y1)", "< " + sympy.pretty(refValue) + " ?"],
+                              headers=["i", "B", "(xi, yi)", "f(xi, yi)", "< " + sympy.pretty(refValue) + " ?"],
                               tablefmt="simple")]
             break
         else:
