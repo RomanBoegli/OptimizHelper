@@ -15,41 +15,41 @@ A tiny command line interface tool for solving (non) integer & network optimizat
 
 Introduction:
 ```console
-$ python3 main.py --help
+$ python3 main.py
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
   Simple CLI for optimization problems.
 
 Options:
-  --help  Show this message and exit.
+  -h, --help  Show this message and exit.
 
 Part 1a:
-  hyperplanes      Retruns basic & feasible solutions of an Ax<=b syste...
+  hyperplanes      Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions....
   matanalysis      Basic matrix analysis insights.
-  plot             Plots a 2D system of inequalities provided in Ax<=b...
-  simplex          Applies Simplex on an Ax<=b system with 2 or 3 dimen...
+  plot             Plots a 2D system of inequalities provided in Ax<=b form. File must have the...
+  simplex          Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the...
 
 Part 2a:
-  aitken           Returns the Aitken sequence for a value series of at...
+  aitken           Returns the Aitken sequence for a value series of at least 3.
   broyden          Iterating optimization using Broyden's method.
   diffbeauty       Returns the derivative in pretty form.
   difftree         Returns all partial derivatives as a tree.
-  evaluate         Evaluates a function with a given substitution (assu...
+  evaluate         Evaluates a function with a given substitution (assumes alphabetic order).
   gradient         Returns the gradient of the given function.
-  hessian          Returns Hessian matrix or its determinant of a given...
+  hessian          Returns Hessian matrix or its determinant of a given function.
   newton           Applies one step of Newton's method.
-  succhalv         Applies one step of Gradient method with successive...
+  succhalv         Applies one step of Gradient method with successive halving and parabola fitt...
 
 Part 2b:
-  dijkstra         All shortest paths to all other nodes from given sta...
+  dijkstra         All shortest paths to all other nodes from given starting node.
   drawgraph        Plots a graph based on provided adjacency matrix.
-  floydwarshall    Returns matrix with shortest distances between all n...
+  floydwarshall    Returns matrix with shortest distances between all nodes.
   maxflow          Finds maximum flow based on provided edge list.
-  maxmatch         Maximum matchings of a bipartite graph based on prov...
-  mincostmaxflow   Returns a maximum s-t flow of minimum cost based on...
-  mincut           Finds minimum s-t-cut based on provided edge list or...
+  maxmatch         Maximum matchings of a bipartite graph based on provided adjacency matrix.
+  mincostmaxflow   Returns a maximum s-t flow of minimum cost based on provided edge list.
+  mincut           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
   mst              Returns the minimum spanning tree.
-  traverse         Traverses graph either breadth-first (style='bf') or...
+  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df').
 ````
 
 ## Part 1a
@@ -205,16 +205,19 @@ unique = True
 
 
 #### Plot System of Inequalities
-Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'. See output below (left plot).
+Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'. See image below (left plot).
 ```console
 $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5
 result saved as: ./plot.png
 ```
 
-Also possible to show an instructed Gomory Chvatal Cut provided as $(c1, h1, c2, h2)$ which will result in a new hyperplane $h3 = c1 * h1 + c2 * h2$. The new hyperplane is shown as black line and does not appear in the legend. See output below (right plot).
+Also possible to show an instructed Gomory Chvatal Cut provided as $(c1, h1, c2, h2)$ which will result in a new hyperplane $h3 = c1 * h1 + c2 * h2$. The new hyperplane is shown as black line and is printed to the console as part of the result, however, does not appear in the legend. See image below (right plot).
 ```console
 $ python3 main.py plot /path/to/FileWithSheets_A_b.ods -x -1 6 -y 0 5 -gc 0.2 1 0.1 2
 result saved as: ./plot.png
+gc-cut with 0.2*(1) +  0.1*(2)
+= (0.2*[-x + 4⋅y]) + (0.1*[2⋅x + 2⋅y]) ≤ ⌊(0.2*[8]) + (0.1*[9])⌋
+= 1.0⋅y ≤ 2
 ```
 
 <img width="100%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175803849-9b70a6ab-3f58-43af-ab78-d8ec2461783d.png">
