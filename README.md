@@ -220,8 +220,7 @@ gc-cut with 0.2*(1) +  0.1*(2)
 = 1.0⋅y ≤ 2
 ```
 
-<img width="100%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175803849-9b70a6ab-3f58-43af-ab78-d8ec2461783d.png">
-
+<img width="100%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175807151-c598456a-a5ed-46c2-a91a-d1ab7cf43565.png">
 
 </br>
 
