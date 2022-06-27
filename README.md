@@ -45,15 +45,15 @@ Part 2a:
   <a href="#gradient-method-with-successive-halving">succhalv</a>         Applies one step of Gradient method with successive halving and parabola fitt...
 
 Part 2b:
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">dijkstra</a>         All shortest paths to all other nodes from given starting node.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">drawgraph</a>        Plots a graph based on provided adjacency matrix.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">floydwarshall</a>    Returns matrix with shortest distances between all nodes.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">maxflow</a>          Finds maximum flow based on provided edge list.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">maxmatch</a>         Maximum matchings of a bipartite graph based on provided adjacency matrix.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mincut</a>           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mst</a>              Returns the minimum spanning tree.
-  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">traverse</a>         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
+  <a href="#shortest-path-using-dijkstra">dijkstra</a>         All shortest paths to all other nodes from given starting node.
+  <a href="#graph-visualization">drawgraph</a>        Plots a graph based on provided adjacency matrix.
+  <a href="#floyd-warshall">floydwarshall</a>    Returns matrix with shortest distances between all nodes.
+  <a href="#maximum-flow">maxflow</a>          Finds maximum flow based on provided edge list.
+  <a href="#maximum-matching">maxmatch</a>         Maximum matchings of a bipartite graph based on provided adjacency matrix.
+  <a href="#min-cost-max-flow">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list.
+  <a href="#minimum-s-t-cut">mincut</a>           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
+  <a href="#minimum-spanning-tree-mst">mst</a>              Returns the minimum spanning tree.
+  <a href="#traverse">traverse</a>         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
 </code>
 </pre>
 
