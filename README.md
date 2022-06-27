@@ -441,8 +441,9 @@ $ python3 main.py aitken "100,10,2,0.5"
 
 </br>
 
-## Graph and Network Optimization
+### Graph and Network Optimization
 
+#### Graph Visualization
 Plotting a graph based on an adjacency matrix. When no edge is shared, enter `0` weight. See example below.
 ```console
 $ cat adjmat.csv
@@ -476,8 +477,7 @@ result saved as: ./graph.html
 <img width="518" alt="directed" src="https://user-images.githubusercontent.com/22320200/169777745-e81300fb-53c3-47da-9875-6c270953ad9c.png">
 
 
-
-
+#### Minimum Spanning Tree (MST)
 Return minimum spanning tree.
 ```console
 $ cat adjmat.csv
@@ -500,6 +500,8 @@ C       F         1100
 ----    SUM:      1930
 ```
 
+
+#### Shortest Path using Dijkstra
 Get the shortest paths from a given node to all other nodes.
 ```console
 $ python3 main.py dijkstra adjmat.csv A
@@ -513,6 +515,7 @@ Shortest Path      Total Weight
 ['A', 'E', 'D']             630
 ```
 
+#### Traverse
 Traverse a graph either breadth-first or dept-first.
 ```console
 $ python3 main.py traverse adjmat.csv bf
@@ -530,6 +533,7 @@ $ python3 main.py traverse adjmat.csv df
 Encounter Order: E → D → F → C → B → A
 ```
 
+#### Floyd-Warshall
 Shortest distances between all nodes using Floyd-Warshall. Right-hand side shows changes.
 ```console
 $ python3 main.py floydwarshall adjmat.csv
@@ -554,7 +558,7 @@ E   700  760  820  800    0   40    |      0   760   -80    0    0     0
 F   600  440  320  300   40    0    |      0  -360  -180    0    0     0
 ```
 
-
+#### Maximum Flow
 Maximum flow of a directed graph provided an edge list (cost is irrelevant here).
 ```console
 $ cat edges.csv
@@ -589,6 +593,7 @@ s       {'2': 10, '3': 5, '4': 13}
 t       {}
 ```
 
+#### Minimum S-T-Cut
 Find a minimum s-t-cut based on edge list or adjacency.
 ```console
 $ python3 main.py mincut edges.csv s t
@@ -603,6 +608,7 @@ $ python3 main.py mincut adjmat.csv s t --adjacency True
   1  ['2', '5', '6', 't']
 ```
 
+#### Maximum Matching
 Find a maximum matching.
 ```console
 $ python3 main.py maxmatch adjmat.csv s t
@@ -614,6 +620,7 @@ s - 2
 5 - 6
 ```
 
+#### Min Cost Max Flow
 Maximum s-t flow of minimum cost based on provided edge list.
 ```console
 $ python3 main.py mincostmaxflow edges.csv s t
