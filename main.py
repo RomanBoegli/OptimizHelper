@@ -272,8 +272,8 @@ def simplex(file, basic_sel, pretty):
 
 @main.command(help_group='Part 1a')
 @click.argument('file', type=click.Path(exists=True))
-@click.option('--xlim', '-x', default=(-10, 10), type=(int, int), multiple=False, help='set x-axis range')
-@click.option('--ylim', '-y', default=(-10, 10), type=(int, int), multiple=False, help='set y-axis range')
+@click.option('--xlim', '-x', default=(-10, 10), type=(float, float), multiple=False, help='set x-axis range')
+@click.option('--ylim', '-y', default=(-10, 10), type=(float, float), multiple=False, help='set y-axis range')
 @click.option('--gomory', '-gc', default=None, type=(float, int, float, int), multiple=False, help='params to combine two inequalities')
 @click.option('--show', '-s', is_flag=True, help='show plot in interactive window')
 def plot(file, xlim, ylim, gomory, show):
@@ -301,7 +301,6 @@ def plot(file, xlim, ylim, gomory, show):
     polyhedron = inequalities[0]
     for r in range(1, rows):
         polyhedron = sympy.And(polyhedron, inequalities[r])
-    click.echo(polyhedron)
     p = sympy.plot_implicit(polyhedron, x_var=(x, xlim[0], xlim[1]), y_var=(y, ylim[0], ylim[1]), line_color='grey', show=False)
     i = 0
     for eq in equalities:
@@ -309,7 +308,7 @@ def plot(file, xlim, ylim, gomory, show):
         if len(u) == 0:
             eq = sympy.Eq(eq.args[0] + 0.00000000000000001 * y, eq.args[1])
             u = sympy.solve(eq, y)
-        p1 = sympy.plot(u[0], label=f'({i+1}) {str(inequalities[i])}', legend=True, show=False)
+        p1 = sympy.plot(u[0], (x, xlim[0], xlim[1]), xlim=xlim, ylim=ylim, label=f'({i+1}) {str(inequalities[i])}', legend=True, show=False)
         p.extend(p1)
         i += 1
     gc_result = ''
