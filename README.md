@@ -15,7 +15,9 @@ A tiny command line interface tool for solving (non) integer & network optimizat
 # Examples
 
 Introduction:
-```console
+
+<pre>
+<code>
 $ python3 main.py
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
@@ -25,34 +27,36 @@ Options:
   -h, --help  Show this message and exit.
 
 Part 1a:
-  hyperplanes      Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions....
-  matanalysis      Basic matrix analysis insights.
-  plot             Plots a 2D system of inequalities provided in Ax<=b form. File must have the...
-  simplex          Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the...
+  <a href="https://github.com/RomanBoegli/OptimizHelper/edit/main/README.md#basic-selection-of-hyperplanes">hyperplanes</a>      Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions....
+  <a href="https://github.com/RomanBoegli/OptimizHelper/edit/main/README.md#matrix-analysis">matanalysis</a>      Basic matrix analysis insights.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#plot-system-of-inequalities">plot</a>             Plots a 2D system of inequalities provided in Ax<=b form. File must have the...
+  <a href="https://github.com/RomanBoegli/OptimizHelper#simplex-algorithm">simplex</a>          Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the...
 
 Part 2a:
-  aitken           Returns the Aitken sequence for a value series of at least 3.
-  broyden          Iterating optimization using Broyden's method given a function and starting v...
-  broydeninter     Iterating optimization using Broyden's method given the interim results start...
-  diffbeauty       Returns the derivative in pretty form.
-  difftree         Returns all partial derivatives as a tree.
-  evaluate         Evaluates a function with a given substitution (assumes alphabetic order).
-  gradient         Returns the gradient of the given function.
-  hessian          Returns Hessian matrix or its determinant of a given function.
-  newton           Applies one step of Newton's method.
-  succhalv         Applies one step of Gradient method with successive halving and parabola fitt...
+  <a href="https://github.com/RomanBoegli/OptimizHelper#aitken">aitken</a>           Returns the Aitken sequence for a value series of at least 3.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#broydens-method">broyden</a>          Iterating optimization using Broyden's method given a function and starting v...
+  <a href="https://github.com/RomanBoegli/OptimizHelper#broydens-method">broydeninter</a>     Iterating optimization using Broyden's method given the interim results start...
+  <a href="https://github.com/RomanBoegli/OptimizHelper#derivatives">diffbeauty</a>       Returns the derivative in pretty form.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#derivatives">difftree</a>         Returns all partial derivatives as a tree.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#evaluations">evaluate</a>         Evaluates a function with a given substitution (assumes alphabetic order).
+  <a href="https://github.com/RomanBoegli/OptimizHelper#gradient-method-with-successive-halving">gradient</a>         Returns the gradient of the given function.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#gradient-method-with-successive-halving">hessian</a>          Returns Hessian matrix or its determinant of a given function.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#newtons-method">newton</a>           Applies one step of Newton's method.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#gradient-method-with-successive-halving">succhalv</a>         Applies one step of Gradient method with successive halving and parabola fitt...
 
 Part 2b:
-  dijkstra         All shortest paths to all other nodes from given starting node.
-  drawgraph        Plots a graph based on provided adjacency matrix.
-  floydwarshall    Returns matrix with shortest distances between all nodes.
-  maxflow          Finds maximum flow based on provided edge list.
-  maxmatch         Maximum matchings of a bipartite graph based on provided adjacency matrix.
-  mincostmaxflow   Returns a maximum s-t flow of minimum cost based on provided edge list.
-  mincut           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
-  mst              Returns the minimum spanning tree.
-  traverse         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
-````
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">dijkstra</a>         All shortest paths to all other nodes from given starting node.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">drawgraph</a>        Plots a graph based on provided adjacency matrix.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">floydwarshall</a>    Returns matrix with shortest distances between all nodes.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">maxflow</a>          Finds maximum flow based on provided edge list.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">maxmatch</a>         Maximum matchings of a bipartite graph based on provided adjacency matrix.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mincut</a>           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">mst</a>              Returns the minimum spanning tree.
+  <a href="https://github.com/RomanBoegli/OptimizHelper#graph-and-network-optimization">traverse</a>         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
+</code>
+</pre>
+
 
 ## Part 1a
 
