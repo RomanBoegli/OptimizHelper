@@ -28,9 +28,9 @@ Options:
 
 Part 1a:
   <a href="#basic-selection-of-hyperplanes">hyperplanes</a>      Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions....
-  <a href="https://github.com/RomanBoegli/OptimizHelper/edit/main/README.md#matrix-analysis">matanalysis</a>      Basic matrix analysis insights.
+  <a href="#matrix-analysis">matanalysis</a>      Basic matrix analysis insights.
   <a href="#plot-system-of-inequalities">plot</a>             Plots a 2D system of inequalities provided in Ax<=b form. File must have the...
-  <a href="https://github.com/RomanBoegli/OptimizHelper#simplex-algorithm">simplex</a>          Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the...
+  <a href="#simplex-algorithm">simplex</a>          Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the...
 
 Part 2a:
   <a href="#aitken">aitken</a>           Returns the Aitken sequence for a value series of at least 3.
@@ -50,7 +50,7 @@ Part 2b:
   <a href="#floyd-warshall">floydwarshall</a>    Returns matrix with shortest distances between all nodes.
   <a href="#maximum-flow">maxflow</a>          Finds maximum flow based on provided edge list.
   <a href="#maximum-matching">maxmatch</a>         Maximum matchings of a bipartite graph based on provided adjacency matrix.
-  <a href="#min-cost-max-flow">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list.
+  <a href="#min-cost-max-flow">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list with weights and costs.
   <a href="#minimum-s-t-cut">mincut</a>           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
   <a href="#minimum-spanning-tree-mst">mst</a>              Returns the minimum spanning tree.
   <a href="#traverse">traverse</a>         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
@@ -602,7 +602,7 @@ cut value: 28
   0  ['3', '4', '7', 's']
   1  ['2', '5', '6', 't']
 
-$ python3 main.py mincut adjmat.csv s t --adjacency True
+$ python3 main.py mincut adjmat.csv s t -adj
 ---  --------------------
   0  ['3', '4', '7', 's']
   1  ['2', '5', '6', 't']
@@ -611,7 +611,7 @@ $ python3 main.py mincut adjmat.csv s t --adjacency True
 #### Maximum Matching
 Find a maximum matching.
 ```console
-$ python3 main.py maxmatch adjmat.csv s t
+$ python3 main.py maxmatch adjmat.csv
 matches
 ---------
 3 - 4
@@ -621,7 +621,7 @@ s - 2
 ```
 
 #### Min Cost Max Flow
-Maximum s-t flow of minimum cost based on provided edge list.
+Returns a maximum s-t flow of minimum cost based on provided edge list with weights and costs.
 ```console
 $ python3 main.py mincostmaxflow edges.csv s t
 min cost: 13

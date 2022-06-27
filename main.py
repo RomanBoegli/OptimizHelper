@@ -679,7 +679,7 @@ def aitken(valueseq):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.option("--directed", default='False', help="Use 'True' when graph is directed.")
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
 def drawgraph(csvfile, directed, format):
@@ -715,7 +715,7 @@ def drawgraph(csvfile, directed, format):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 def mst(csvfile):
     """Returns the minimum spanning tree."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
@@ -731,7 +731,7 @@ def mst(csvfile):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('fromnode')
 def dijkstra(csvfile, fromnode):
     """All shortest paths to all other nodes from given starting node."""
@@ -747,7 +747,7 @@ def dijkstra(csvfile, fromnode):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('fromnode')
 @click.argument('style')
 def traverse(csvfile, fromnode, style):
@@ -772,7 +772,7 @@ def traverse(csvfile, fromnode, style):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.option("--onlyuse", default='all', help="Node constraints (e.g. 'A, D, F')")
 def floydwarshall(csvfile, onlyuse):
     """Returns matrix with shortest distances between all nodes."""
@@ -791,7 +791,7 @@ def floydwarshall(csvfile, onlyuse):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('source')
 @click.argument('target')
 def maxflow(csvfile, source, target):
@@ -803,10 +803,10 @@ def maxflow(csvfile, source, target):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('source')
 @click.argument('target')
-@click.option("--adjacency", default=False, help="Node constraints (e.g. 'A, D, F')")
+@click.option('--adjacency', '-adj', is_flag=True, help='csv input is adjacency matrix')
 def mincut(csvfile, source, target, adjacency):
     """Finds minimum s-t-cut based on provided edge list or adjacency matrix."""
     if adjacency:
@@ -826,7 +826,7 @@ def mincut(csvfile, source, target, adjacency):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 def maxmatch(csvfile):
     """Maximum matchings of a bipartite graph based on provided adjacency matrix."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
@@ -839,11 +839,11 @@ def maxmatch(csvfile):
 
 
 @main.command(help_group='Part 2b')
-@click.argument('csvfile')
+@click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('source')
 @click.argument('target')
 def mincostmaxflow(csvfile, source, target):
-    """Returns a maximum s-t flow of minimum cost based on provided edge list."""
+    """Returns a maximum s-t flow of minimum cost based on provided edge list with weights and costs."""
     G = hf.__get_graph_from_edge_list(csvfile)
     flowDict = nx.max_flow_min_cost(G, source, target, capacity='weight', weight='cost')
     mincost = nx.cost_of_flow(G, flowDict, weight='cost')
