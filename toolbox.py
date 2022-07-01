@@ -44,7 +44,7 @@ def __difftree_rec(expression, level=0, functionsuffix='', transform=True, paren
         expr = expression
     if level == 0:
         tree = Tree()
-        tree.create_node("f: {0}".format(str(expr).replace('**', '^').replace('*', '')), 'root')
+        tree.create_node("f: {0}".format(str(sympy.nsimplify(expr)).replace('**', '^').replace('*', '')), 'root')
         level += 1
     for v in expr.free_symbols:
         d = sympy.diff(expr, v)
