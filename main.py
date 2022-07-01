@@ -476,13 +476,17 @@ def newton(expression, sub, pretty):
 @click.argument('expression')
 @click.argument('values', nargs=-1)
 def succhalv(expression, values):
-    """Applies one step of Gradient method with successive halving and parabola fitting."""
+    """Applies Gradient method with successive halving and parabola fitting on 2D or 3D functions."""
     expr = hf.str_to_expression(expression)
     vars = list(sympy.ordered(expr.free_symbols))
+    if not (2 <= len(vars) <= 3):
+        click.echo(f'Can only process function with at most 3 dimensions, you provided {len(vars)} dimensions.')
+        return
+    ThreeD = True if len(vars) == 3 else False
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
-        s = ['', 's'][missing>1]
+        s = ['', 's'][missing > 1]
         click.echo(f'Missing {missing} value{s}')
         return
     if missing < 0:
@@ -495,11 +499,14 @@ def succhalv(expression, values):
     G = G.evalf(subs=dict(zip(vars, vals)))
     graddres = sympy.nsimplify(G, tolerance=1e-10, rational=True)
 
-    x0, y0, B, gx0, gy0 = sympy.symbols('x0, y0, B, gx0, gy0')
+    x0, y0, z0, B, gx0, gy0, gz0 = sympy.symbols('x0, y0, z0, B, gx0, gy0, gz0')
     exp1 = x0 + (-B * gx0)
     exp2 = y0 + (-B * gy0)
     res_exp1 = graddres[0]
     res_exp2 = graddres[1]
+    if ThreeD:
+        exp3 = z0 + (-B * gz0)
+        res_exp3 = graddres[2]
     halvings = 0
     f_result = 0
     results = []
@@ -507,18 +514,21 @@ def succhalv(expression, values):
         currentB = 1 * 0.5 ** halvings
         x1 = exp1.subs([(x0, vals[0]), (B, currentB), (gx0, res_exp1)])
         y1 = exp2.subs([(y0, vals[1]), (B, currentB), (gy0, res_exp2)])
+        if ThreeD:
+            z1 = exp3.subs([(z0, vals[2]), (B, currentB), (gz0, res_exp3)])
         f_result_previous = f_result
-        f_result = expr.subs(zip(vars, [x1, y1]))
-        x1y1 = "({0}, {1})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1))
-        results.append([halvings, currentB, x1y1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue])
+        f_result = expr.subs(zip(vars, [x1, y1])) if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
+        x1y1z1 = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
+        results.append([halvings, currentB, x1y1z1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue])
         if f_result < refValue:
-            B_star = currentB / 2 * (3 * refValue - 4 * f_result + f_result_previous) / (
-                        refValue - 2 * f_result + f_result_previous)
+            B_star = currentB / 2 * (3 * refValue - 4 * f_result + f_result_previous) / (refValue - 2 * f_result + f_result_previous)
             x1 = exp1.subs([(x0, vals[0]), (B, B_star), (gx0, res_exp1)])
             y1 = exp2.subs([(y0, vals[1]), (B, B_star), (gy0, res_exp2)])
-            x1y1 = "({0}, {1})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1))
-            f_result_better = expr.subs(zip(vars, [x1, y1]))
-            results.append(['B*', B_star, x1y1, hf.__rstrip_zeros(f_result_better), ' - '])
+            if ThreeD:
+                z1 = exp3.subs([(z0, vals[2]), (B, B_star), (gz0, res_exp3)])
+            x1y1z1 = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
+            f_result_better = expr.subs(zip(vars, [x1, y1]))  if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
+            results.append(['B*', B_star, x1y1z1, hf.__rstrip_zeros(f_result_better), ' - '])
             table = [tabulate(results,
                               headers=["i", "B", "(xi, yi)", "f(xi, yi)", "< " + sympy.pretty(refValue) + " ?"],
                               tablefmt="simple")]

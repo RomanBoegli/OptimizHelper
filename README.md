@@ -42,7 +42,7 @@ Part 2a:
   <a href="#gradient-method-with-successive-halving">gradient</a>         Returns the gradient of the given function.
   <a href="#gradient-method-with-successive-halving">hessian</a>          Returns Hessian matrix or its determinant of a given function.
   <a href="#newtons-method">newton</a>           Applies one step of Newton's method.
-  <a href="#gradient-method-with-successive-halving">succhalv</a>         Applies one step of Gradient method with successive halving and parabola fitt...
+  <a href="#gradient-method-with-successive-halving">succhalv</a>         Applies Gradient method with successive halving and parabola fitting on 2D or...
 
 Part 2b:
   <a href="#shortest-path-using-dijkstra">dijkstra</a>         All shortest paths to all other nodes from given starting node.
@@ -310,6 +310,16 @@ i            B  (x1, y1)               f(x1, y1)  < 4 ?
 2    0.25       (1, 2)                 10         False
 3    0.125      (1.5, 1)                0.3125    True
 B*   0.0969626  (1.61215, 0.775701)     0.026319  -
+```
+
+Also works for 3 dimensional functions. Use the double dash (`--`) when working with negative values as after it all further parameters are accepted as arguments.
+```
+python3 main.py succhalv 'x^2 + y^2 +z^2' -- 3 1 -2
+i      B  (xi, yi)       f(xi, yi)  < 14 ?
+---  ---  -----------  -----------  --------
+0    1    (-3, -1, 2)           14  False
+1    0.5  (0, 0, 0)              0  True
+B*   0.5  (0, 0, 0)              0  -
 ```
 
 #### Hessian
