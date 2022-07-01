@@ -437,9 +437,9 @@ $ python3 main.py broydeninter --startingpoint 3.3 0.4 --gradient 1 0 --gradient
 
 
 #### Aitken
-Optimize a value series using Aitken sequence:
+Optimize a series of at least 3 values using Aitken sequence:
 ```console
-$ python3 main.py aitken "100,10,2,0.5"
+$ python3 main.py aitken 100 10 2 0.5
   i     Xi  Aitken Yi
 ---  -----  -------------------
   0  100    -
@@ -447,7 +447,6 @@ $ python3 main.py aitken "100,10,2,0.5"
   2    2    1.2195121951219512
   3    0.5  0.15384615384615385
 ```
-
 
 </br>
 

@@ -593,7 +593,7 @@ def broyden(expression, values, steps, pretty, rational):
         Ai = sympy.nsimplify(A, tolerance=1e-10, rational=True) if rational else A
         Gi = sympy.nsimplify(G.T, tolerance=1e-10, rational=True) if rational else G.T
         xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)  if rational else new_point
-        results.append([step,
+        results.append([step, 
                         sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
                         sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
                         sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
@@ -663,14 +663,11 @@ def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
 
 
 @main.command(help_group='Part 2a', short_help='asdf')
-@click.argument('valueseq')
-def aitken(valueseq):
+@click.argument('values', nargs=-1)
+def aitken(values):
     """Returns the Aitken sequence for a value series of at least 3."""
-    vs = valueseq.split(',')
-    values = []
-    for v in vs:
-        values.append(hf.__convert_to_float(v))
-    if values.hf.__lenhf.__() < 3:
+    values = [hf.__convert_to_float(i) for i in list(values)]
+    if len(values) < 3:
         click.echo("requires at least 3 values!")
         return
     results = []
