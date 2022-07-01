@@ -604,7 +604,7 @@ def broyden(expression, values, steps, pretty, rational):
         point = new_point
         step += 1
 
-    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
 @main.command(help_group='Part 2a')
@@ -658,7 +658,7 @@ def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
         x_point_histroy.append(new_point)
         step += 1
 
-    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
 
