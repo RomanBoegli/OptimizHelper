@@ -525,9 +525,9 @@ Shortest Path      Total Weight
 ```
 
 #### Traverse
-Traverse a graph either breadth-first or dept-first.
+Traverse a graph either breadth-first or dept-first starting from node `A`.
 ```console
-$ python3 main.py traverse adjmat.csv bf
+$ python3 main.py traverse adjmat.csv A bf
   Step  From    To
 ------  ------  ----
      0  A       B
@@ -537,7 +537,7 @@ $ python3 main.py traverse adjmat.csv bf
      4  B       D
 Encounter Order: A → B → C → E → F → D
 
-$ python3 main.py traverse adjmat.csv df
+$ python3 main.py traverse adjmat.csv A df
 ...
 Encounter Order: E → D → F → C → B → A
 ```
