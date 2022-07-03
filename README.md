@@ -483,7 +483,7 @@ g,0,0,1,0,0,0,0
 $ python3 main.py drawgraph "./adjmat2.csv" --directed
 result saved as: ./graph.html
 ```
-<img width="518" alt="directed" src="https://user-images.githubusercontent.com/22320200/169777745-e81300fb-53c3-47da-9875-6c270953ad9c.png">
+<img width="501" alt="directed" src="https://user-images.githubusercontent.com/22320200/177040404-dba0c54b-836f-46c3-b79b-30234171739d.png">
 
 
 #### Minimum Spanning Tree (MST)
