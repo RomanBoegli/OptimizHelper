@@ -475,7 +475,9 @@ def newton(expression, sub, pretty):
 @main.command(help_group='Part 2a')
 @click.argument('expression')
 @click.argument('values', nargs=-1)
-def succhalv(expression, values):
+@click.option('--stepsize', '-s', default=1, type=int, help='step size B (default=1)')
+@click.option('--maxsteps', '-m', default=None, type=int, help='limit amount of steps')
+def succhalv(expression, values, stepsize, maxsteps):
     """Applies Gradient method with successive halving and parabola fitting on 2D or 3D functions."""
     expr = hf.str_to_expression(expression)
     vars = list(sympy.ordered(expr.free_symbols))
@@ -511,7 +513,7 @@ def succhalv(expression, values):
     f_result = 0
     results = []
     while True:
-        currentB = 1 * 0.5 ** halvings
+        currentB = stepsize * 0.5 ** halvings
         x1 = exp1.subs([(x0, vals[0]), (B, currentB), (gx0, res_exp1)])
         y1 = exp2.subs([(y0, vals[1]), (B, currentB), (gy0, res_exp2)])
         if ThreeD:
@@ -520,22 +522,24 @@ def succhalv(expression, values):
         f_result = expr.subs(zip(vars, [x1, y1])) if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
         x1y1z1 = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
         results.append([halvings, currentB, x1y1z1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue])
-        if f_result < refValue:
+        if f_result < refValue or (maxsteps is not None and halvings == maxsteps):
             B_star = currentB / 2 * (3 * refValue - 4 * f_result + f_result_previous) / (refValue - 2 * f_result + f_result_previous)
             x1 = exp1.subs([(x0, vals[0]), (B, B_star), (gx0, res_exp1)])
             y1 = exp2.subs([(y0, vals[1]), (B, B_star), (gy0, res_exp2)])
             if ThreeD:
                 z1 = exp3.subs([(z0, vals[2]), (B, B_star), (gz0, res_exp3)])
-            x1y1z1 = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
+            x1y1z1_star = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
             f_result_better = expr.subs(zip(vars, [x1, y1]))  if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
-            results.append(['B*', B_star, x1y1z1, hf.__rstrip_zeros(f_result_better), ' - '])
+            results.append(['B*', B_star, x1y1z1_star, hf.__rstrip_zeros(f_result_better), ' - '])
             table = [tabulate(results,
-                              headers=["i", "B", "(xi, yi)", "f(xi, yi)", "< " + sympy.pretty(refValue) + " ?"],
+                              headers=["#", "B", "(x1, y1)", "f(x1, y1)", "< " + sympy.pretty(refValue) + " ?"],
                               tablefmt="simple")]
             break
         else:
             halvings += 1
-    click.echo("\n".join(table))
+    click.echo('\n'.join(table) +
+               f'\n\n(x1, y1) = {x1y1z1}' +
+               f'\n(x1, y1) = {x1y1z1_star}  <-- parabola fitted using B*')
 
 
 @main.command(help_group='Part 2a')
@@ -865,8 +869,8 @@ def mincostmaxflow(csvfile, source, target):
     mincost = nx.cost_of_flow(G, flowDict, weight='cost')
     mincostFlowValue = sum((flowDict[u][target] for u in G.predecessors(target))) - sum((flowDict[target][v] for v in G.successors(target)))
     table = [tabulate(np.array(list(flowDict.items())), headers=["node", "routed values"], tablefmt="simple")]
-    click.echo("min cost: " + str(mincost) + "\n" +
-               "max flow: " + str(mincostFlowValue) + "\n" +
+    click.echo('\nmin cost: ' + str(mincost) +
+               '\nmax flow: ' + str(mincostFlowValue) + '\n' +
                "\n".join(table))
 
 

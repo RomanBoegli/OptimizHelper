@@ -302,23 +302,29 @@ $ python3 main.py gradient '(x^2-2xy+x)^2' -s x 2 -s y 2 --pretty
 Next better point using Gradient method with successive halving (incl. parabola fitted point $B*$):
 ```console
 $ python3 main.py succhalv '(x-2)^4 + (x-2y)^2' 2 0
-i            B  (x1, y1)               f(x1, y1)  < 4 ?
+#            B  (x1, y1)               f(x1, y1)  < 4 ?
 ---  ---------  -------------------  -----------  -------
 0    1          (-2, 8)               580         False
 1    0.5        (0, 4)                 80         False
 2    0.25       (1, 2)                 10         False
 3    0.125      (1.5, 1)                0.3125    True
 B*   0.0969626  (1.61215, 0.775701)     0.026319  -
+
+(x1, y1) = (1.5, 1)
+(x1, y1) = (1.61215, 0.775701)  <-- parabola fitted using B*
 ```
 
 Also works for 3 dimensional functions. Use the double dash (`--`) when working with negative values as after it all further parameters are accepted as arguments.
 ```
 python3 main.py succhalv 'x^2 + y^2 +z^2' -- 3 1 -2
-i      B  (xi, yi)       f(xi, yi)  < 14 ?
+#      B  (x1, y1)       f(x1, y1)  < 14 ?
 ---  ---  -----------  -----------  --------
 0    1    (-3, -1, 2)           14  False
 1    0.5  (0, 0, 0)              0  True
 B*   0.5  (0, 0, 0)              0  -
+
+(x1, y1) = (0, 0, 0)
+(x1, y1) = (0, 0, 0)  <-- parabola fitted using B*
 ```
 
 #### Hessian
