@@ -45,15 +45,15 @@ Part 2a:
   <a href="#gradient-method-with-successive-halving">succhalv</a>         Applies Gradient method with successive halving and parabola fitting on 2D or...
 
 Part 2b:
-  <a href="#shortest-path-using-dijkstra">dijkstra</a>         All shortest paths to all other nodes from given starting node.
+  <a href="#shortest-path-using-dijkstra">dijkstra</a>         All shortest paths to all other nodes from given starting node using an (un)d...
   <a href="#graph-visualization">drawgraph</a>        Plots a graph based on provided adjacency matrix.
   <a href="#floyd-warshall">floydwarshall</a>    Returns matrix with shortest distances between all nodes.
   <a href="#maximum-flow">maxflow</a>          Finds maximum flow based on provided edge list.
   <a href="#maximum-matching">maxmatch</a>         Maximum matchings of a bipartite graph based on provided adjacency matrix.
   <a href="#min-cost-max-flow">mincostmaxflow</a>   Returns a maximum s-t flow of minimum cost based on provided edge list with weights and costs.
   <a href="#minimum-s-t-cut">mincut</a>           Finds minimum s-t-cut based on provided edge list or adjacency matrix.
-  <a href="#minimum-spanning-tree-mst">mst</a>              Returns the minimum spanning tree.
-  <a href="#traverse">traverse</a>         Traverses graph either breadth-first (style='bf') or depth-first (style='df'
+  <a href="#minimum-spanning-tree-mst">mst</a>              Returns the minimum spanning tree of an undirected graph.
+  <a href="#traverse">traverse</a>         Traverses graph provided as (un)directed adjacency matrix either breadth-first...
 </code>
 </pre>
 

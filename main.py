@@ -686,11 +686,11 @@ def aitken(values):
 
 @main.command(help_group='Part 2b')
 @click.argument('csvfile', type=click.Path(exists=True))
-@click.option("--directed", default='False', help="Use 'True' when graph is directed.")
 @click.option("--format", default='html', help="Interactive ('html') or static ('png')")
+@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
 def drawgraph(csvfile, directed, format):
     """Plots a graph based on provided adjacency matrix."""
-    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
+    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
     with open(csvfile, 'r') as f:
         d_reader = csv.DictReader(f)
         headers = d_reader.fieldnames
@@ -723,7 +723,7 @@ def drawgraph(csvfile, directed, format):
 @main.command(help_group='Part 2b')
 @click.argument('csvfile', type=click.Path(exists=True))
 def mst(csvfile):
-    """Returns the minimum spanning tree."""
+    """Returns the minimum spanning tree of an undirected graph."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
     T = nx.minimum_spanning_tree(G)
     results = []
@@ -739,9 +739,10 @@ def mst(csvfile):
 @main.command(help_group='Part 2b')
 @click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('fromnode')
-def dijkstra(csvfile, fromnode):
-    """All shortest paths to all other nodes from given starting node."""
-    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
+@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+def dijkstra(csvfile, fromnode, directed):
+    """All shortest paths to all other nodes from given starting node using an (un)directed adjacency matrix."""
+    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
     p = nx.shortest_path(G, source=fromnode, weight='weight')
     df = pd.DataFrame({'target': p.keys(), 'sp': p.values()})
     results = []
@@ -756,9 +757,10 @@ def dijkstra(csvfile, fromnode):
 @click.argument('csvfile', type=click.Path(exists=True))
 @click.argument('fromnode')
 @click.argument('style')
-def traverse(csvfile, fromnode, style):
-    """Traverses graph either breadth-first (style='bf') or depth-first (style='df')."""
-    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
+@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+def traverse(csvfile, fromnode, style, directed):
+    """Traverses graph provided as (un)directed adjacency matrix either breadth-first (style='bf') or depth-first (style='df')."""
+    G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
     if style == 'bf':
         edges = nx.bfs_edges(G, fromnode)
     else:
@@ -780,9 +782,10 @@ def traverse(csvfile, fromnode, style):
 @main.command(help_group='Part 2b')
 @click.argument('csvfile', type=click.Path(exists=True))
 @click.option("--onlyuse", default='all', help="Node constraints (e.g. 'A, D, F')")
-def floydwarshall(csvfile, onlyuse):
+@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+def floydwarshall(csvfile, onlyuse, directed):
     """Returns matrix with shortest distances between all nodes."""
-    G, m, labels = hf.__get_graph_from_adjacency_matrix(csvfile, filling_values=np.inf)
+    G, m, labels = hf.__get_graph_from_adjacency_matrix(csvfile, filling_values=np.inf, isDirected=directed)
     if onlyuse == 'all':
         #p = nx.floyd_warshall_numpy(G, weight='weight')
         allowed_indexes = range(np.size(m[0]))

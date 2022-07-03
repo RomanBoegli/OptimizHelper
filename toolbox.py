@@ -63,13 +63,16 @@ def __make_label_dict(labels):
         l[i] = label
     return l
 
-def __get_graph_from_adjacency_matrix(csvfile, filling_values=None):
+def __get_graph_from_adjacency_matrix(csvfile, filling_values=None, isDirected=False):
     with open(csvfile, 'r') as f:
         ncols = len(next(f).split(','))
     x = np.genfromtxt(csvfile, delimiter=',', filling_values=filling_values, dtype='float32', names=True, usecols=range(1, ncols))
     labels = x.dtype.names
     y = x.view(dtype=('float32', len(x.dtype)))
-    G = nx.from_numpy_matrix(y)
+    if isDirected:
+        G = nx.from_numpy_matrix(y, create_using=nx.DiGraph)
+    else:
+        G = nx.from_numpy_matrix(y)
     G = nx.relabel_nodes(G, dict(zip(range(ncols - 1), labels)))
     return G, y, list(labels)
 
