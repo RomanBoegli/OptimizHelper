@@ -806,7 +806,7 @@ def floydwarshall(csvfile, onlyuse, directed):
 def maxflow(csvfile, source, target):
     """Finds maximum flow based on provided edge list."""
     G = hf.__get_graph_from_edge_list(csvfile)
-    maxflowval, transactions = nx.maximum_flow(G, source, target, 'weight')
+    maxflowval, transactions = nx.maximum_flow(G, source, target, capacity='weight')
     table = [tabulate(np.array(list(transactions.items())), headers=["node", "routed values"], tablefmt="simple")]
     click.echo("max flow: " + str(maxflowval) + "\n" + "\n".join(table))
 
@@ -829,8 +829,15 @@ def mincut(csvfile, source, target, adjacency):
     for p in list(partition):
         results.append([i, sorted(p)])
         i += 1
+    edge_cut_list = []
+    for p1_node in partition[0]:
+        for p2_node in partition[1]:
+            if G.has_edge(p1_node, p2_node):
+                edge_cut_list.append((p1_node, p2_node))
     table = [tabulate(results, headers=["#", "partitions"], tablefmt="simple")]
-    click.echo("cut value: " + str(cut_value) + "\n" + "\n".join(table))
+    click.echo('\n'.join(table) +
+               '\n\ncut edges: ' + str(edge_cut_list) +
+               '\ncut value: ' + str(cut_value))
 
 
 
@@ -844,7 +851,7 @@ def maxmatch(csvfile):
     for m in list(matching):
         results.append([str(m[0]) + " - " + str(m[1])])
     table = [tabulate(results, headers=["matches"], tablefmt="simple")]
-    click.echo("\n".join(table))
+    click.echo('\n'.join(table) + f'\n\nmaximum matches = {len(matching)}')
 
 
 @main.command(help_group='Part 2b')
