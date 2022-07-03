@@ -606,14 +606,22 @@ Find a minimum s-t-cut based on edge list or adjacency.
 ```console
 $ python3 main.py mincut edges.csv s t
 cut value: 28
----  --------------------
-  0  ['3', '4', '7', 's']
-  1  ['2', '5', '6', 't']
+  #  partitions
+---  -----------------------------------------------
+  0  ['a1', 'a2', 'a4', 'a5', 'b1', 'b3', 'b4', 's']
+  1  ['a3', 'b2', 'b5', 't']
+
+cut edges: [('b3', 't'), ('b4', 't'), ('s', 'a3'), ('b1', 't')]
+cut value: 4.0
 
 $ python3 main.py mincut adjmat.csv s t -adj
----  --------------------
-  0  ['3', '4', '7', 's']
-  1  ['2', '5', '6', 't']
+  #  partitions
+---  -----------------------------------------------
+  0  ['a1', 'a2', 'a4', 'a5', 'b1', 'b3', 'b4', 's']
+  1  ['a3', 'b2', 'b5', 't']
+
+cut edges: [('b3', 't'), ('b4', 't'), ('s', 'a3'), ('b1', 't')]
+cut value: 4.0
 ```
 
 #### Maximum Matching
@@ -626,6 +634,7 @@ matches
 7 - t
 s - 2
 5 - 6
+maximum matches = 4
 ```
 
 #### Min Cost Max Flow
