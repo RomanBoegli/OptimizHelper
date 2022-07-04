@@ -232,6 +232,8 @@ gc-cut with 0.2*(1) +  0.1*(2)
 #### Branch and Bound
 IP relaxation on an Ax<=b system. File must have the sheets named 'A', 'b' and 'c' which together represent the LP in inequality form as maximization problem. See sample file below (Knapsack problem).
 
+<img width="30%" alt="plot" src="https://user-images.githubusercontent.com/22320200/177172924-ec28718c-98c1-4f45-8381-bc6e3b3fed74.gif">
+
 ```console
 $ python3 main.py branchbound '/path/to//knapsack.ods' -k
 ╒═════════╤══════════════════╤═════════════════╤════════╤══════════════╤════════╤═════════════════╤═════════════════╕
@@ -255,7 +257,7 @@ $ python3 main.py branchbound '/path/to//knapsack.ods' -k
 ╘═════════╧══════════════════╧═════════════════╧════════╧══════════════╧════════╧═════════════════╧═════════════════╛
 result saved as: ./tree.png
 ```
-
+<img width="60%" alt="plot" src="https://user-images.githubusercontent.com/22320200/177173047-235b8819-3328-48d0-933c-999a95fac96f.png">
 
 </br>
 
