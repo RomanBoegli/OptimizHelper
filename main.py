@@ -14,6 +14,9 @@ from pyvis.network import Network
 from symplex.simplex import * 
 from symplex.perturb import *
 
+# thanks to Johannes
+import branch_and_bound as bb
+
 # ** This code lacks beauty and is (most probably) inefficient. I had little time. **
 
 @click.group(cls=SectionedHelpGroup)
@@ -336,6 +339,31 @@ def plot(file, xlim, ylim, gomory, show):
     click.echo("result saved as: " + image + gc_result)
     if show:
         p.show()
+
+
+@main.command(help_group='Part 1a')
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--knapsack', '-k', is_flag=True, help='Knapsack problem')
+@click.option('--rounddownfirst', is_flag=True, help='Node successor strategy (default is rounding up first)')
+def branchbound(file, knapsack, rounddownfirst):
+    """IP relaxation on an Ax<=b system. File must have the sheets named 'A', 'b' and 'c'
+    which together represent the LP in inequality form as maximization problem."""
+    A = np.array(hf.read_ods(file, sheet='A', noheaders=True), dtype=int)
+    b = np.array(hf.read_ods(file, sheet='b', noheaders=True), dtype=int)
+    c = np.array(hf.read_ods(file, sheet='c', noheaders=True), dtype=int)[0]
+    round_up_first = not rounddownfirst
+    file = './tree.png'
+    if knapsack:
+        val_per_vol = c / A[0]
+        sort_idxs = np.flipud(np.argsort(val_per_vol))
+        c = c[sort_idxs]
+        A[0] = A[0][sort_idxs]
+        table = bb.branch_and_bound_ilp(A, b, c, relax=bb.knapsack_relax, round_up_first=round_up_first, graph_path=file)
+    else:
+        table = bb.branch_and_bound_ilp(A, b, c, round_up_first=round_up_first, graph_path=file)
+
+    click.echo("\n".join(table))
+    click.echo(f'\nresult saved as: {file}')
 
 
 

@@ -26,6 +26,7 @@ Options:
   -h, --help  Show this message and exit.
 
 Part 1a:
+  <a href="#branch-and-bound">branchbound</a>      IP relaxation on an Ax<=b system. File must have the sheets named 'A', 'b' an...
   <a href="#basic-selection-of-hyperplanes">hyperplanes</a>      Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions....
   <a href="#matrix-analysis">matanalysis</a>      Basic matrix analysis insights.
   <a href="#plot-system-of-inequalities">plot</a>             Plots a 2D system of inequalities provided in Ax<=b form. File must have the...
@@ -226,6 +227,35 @@ gc-cut with 0.2*(1) +  0.1*(2)
 ```
 
 <img width="100%" alt="plot" src="https://user-images.githubusercontent.com/22320200/175807151-c598456a-a5ed-46c2-a91a-d1ab7cf43565.png">
+
+
+#### Branch and Bound
+IP relaxation on an Ax<=b system. File must have the sheets named 'A', 'b' and 'c' which together represent the LP in inequality form as maximization problem. See sample file below (Knapsack problem).
+
+```console
+$ python3 main.py branchbound '/path/to//knapsack.ods' -k
+╒═════════╤══════════════════╤═════════════════╤════════╤══════════════╤════════╤═════════════════╤═════════════════╕
+│ step    │ c                │ x_ub            │ z_ub   │ x_lb         │ z_lb   │ global update   │ stop criteria   │
+╞═════════╪══════════════════╪═════════════════╪════════╪══════════════╪════════╪═════════════════╪═════════════════╡
+│ [1] r=0 │ [64  57  48  11] │ [1  1  5/8  0]  │ 151    │ [1  1  0  0] │ 121    │ [1]: z_lb = 121 │                 │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [2] r=2 │ [64  57  48  11] │ ⎡   10      ⎤   │ 142    │ [1  0  1  0] │ 112    │                 │                 │
+│         │                  │ ⎢1  ──  1  0⎥   │        │              │        │                 │                 │
+│         │                  │ ⎣   19      ⎦   │        │              │        │                 │                 │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [3] r=4 │ [64  57  48  11] │ [7/16  1  1  0] │ 133    │ [0  1  1  0] │ 105    │                 │                 │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [4] r=6 │                  │                 │        │              │        │                 │ infeasible      │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [5] r=5 │ [64  57  48  11] │ [0  1  1  7/8]  │ 917/8  │ [0  1  1  0] │ 105    │                 │ dominance       │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [6] r=3 │ [64  57  48  11] │ [1  0  1  1]    │ 123    │ [1  0  1  1] │ 123    │ [6]: z_lb = 123 │ optimal         │
+├─────────┼──────────────────┼─────────────────┼────────┼──────────────┼────────┼─────────────────┼─────────────────┤
+│ [7] r=1 │ [64  57  48  11] │ [1  1  0  1]    │ 132    │ [1  1  0  1] │ 132    │ [7]: z_lb = 132 │ optimal         │
+╘═════════╧══════════════════╧═════════════════╧════════╧══════════════╧════════╧═════════════════╧═════════════════╛
+result saved as: ./tree.png
+```
+
 
 </br>
 
