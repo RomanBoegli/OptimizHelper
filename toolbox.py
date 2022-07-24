@@ -52,7 +52,7 @@ def __difftree_rec(expression, level=0, functionsuffix='', transform=True, paren
         tree.create_node("{0}: {1}".format(id, str(d).replace('**', '^').replace('*', '')), id, parent=parentNode)
         if not d.is_constant():
             __difftree_rec(d.as_expr(), level + 1,
-                        functionsuffix=(functionsuffix + str(v)),
+                        functionsuffix=(str(v) + functionsuffix),
                         transform=False,
                         parentNode=id, tree=tree)
     return tree
