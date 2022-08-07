@@ -294,24 +294,24 @@ f: (x^2 - 2xy + x)^2
 │   │   │   ├── f4x_xxx: 24
 │   │   │   └── f4y_xxx: -24
 │   │   └── f3y_xx: -24x + 16y - 8
-│   │       ├── f4x_xxy: -24
-│   │       └── f4y_xxy: 16
+│   │       ├── f4x_yxx: -24
+│   │       └── f4y_yxx: 16
 │   └── f2y_x: -4x^2 + 8xy - 2x(4x - 4y + 2) - 4x
-│       ├── f3x_xy: -24x + 16y - 8
+│       ├── f3x_yx: -24x + 16y - 8
 │       │   ├── f4x_xyx: -24
 │       │   └── f4y_xyx: 16
-│       └── f3y_xy: 16x
-│           └── f4x_xyy: 16
+│       └── f3y_yx: 16x
+│           └── f4x_yyx: 16
 └── f1y_: -4x(x^2 - 2xy + x)
     ├── f2x_y: -4x^2 + 8xy - 4x(2x - 2y + 1) - 4x
-    │   ├── f3x_yx: -24x + 16y - 8
-    │   │   ├── f4x_yxx: -24
-    │   │   └── f4y_yxx: 16
-    │   └── f3y_yx: 16x
+    │   ├── f3x_xy: -24x + 16y - 8
+    │   │   ├── f4x_xxy: -24
+    │   │   └── f4y_xxy: 16
+    │   └── f3y_xy: 16x
     │       └── f4x_yxy: 16
     └── f2y_y: 8x^2
         └── f3x_yy: 16x
-            └── f4x_yyx: 16
+            └── f4x_xyy: 16
 ```
 
 #### Evaluations
