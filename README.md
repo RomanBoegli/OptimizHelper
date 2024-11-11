@@ -1,5 +1,6 @@
 # OptimizHelper
-A tiny command line interface tool for solving (non) integer & network optimization problems.
+
+A tiny command line interface tool for solving (non)integer & network optimization problems.
 
 <p align="left">
   <img width="100%" alt="cli" src="https://user-images.githubusercontent.com/22320200/177047692-71ffc7ae-589b-4ddf-97e6-b7a80710fe4b.png">
@@ -9,7 +10,7 @@ A tiny command line interface tool for solving (non) integer & network optimizat
 
 0. Clone this repo.
 1. Open console, navigate to repo, execute `pip install -r requirements.txt`.
-4. You're ready to go.
+2. You're ready to go.
 
 # Examples
 
