@@ -89,6 +89,7 @@ def hyperplanes(file, pretty):
             uniquerows.append(checkrow_abs)
     results = []
     i = 0
+    
     for B_ in B:
         skip = False
         for elem in list(B_):
