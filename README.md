@@ -9,8 +9,17 @@ A tiny command line interface tool for solving (non)integer & network optimizati
 # Setup
 
 0. Clone this repo.
-1. Open console, navigate to repo, execute `pip install -r requirements.txt`.
-2. You're ready to go.
+1. Open a terminal and navigate to the repo.
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate   # on Windows: .venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. You're ready to go. Run commands with `python3 main.py ...` while the venv is active.
 
 # Examples
 
@@ -267,6 +276,8 @@ $ python3 main.py branchbound '/path/to//knapsack.ods' -k
 ╘═════════╧══════════════════╧═════════════════╧════════╧══════════════╧════════╧═════════════════╧═════════════════╛
 result saved as: ./tree.png
 ```
+
+> **Note:** `branchbound` requires [Graphviz](https://graphviz.org/) to be installed as a system package (`brew install graphviz` on macOS, `sudo apt-get install graphviz` on Linux).
 
 <img width="60%" alt="plot" src="https://user-images.githubusercontent.com/22320200/177173047-235b8819-3328-48d0-933c-999a95fac96f.png">
 

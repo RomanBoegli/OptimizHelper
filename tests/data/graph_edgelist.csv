@@ -1,0 +1,6 @@
+from,to,weight,cost
+s,A,10,2
+s,B,8,1
+A,B,3,1
+A,t,5,3
+B,t,7,2
