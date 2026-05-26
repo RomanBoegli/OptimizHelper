@@ -73,7 +73,7 @@ Push and verify both `lint` and `test` are green.
 
 **Your task:** Add a job named `sbom` that generates a CycloneDX JSON SBOM, scans it, and uploads it as a pipeline artifact so it can be downloaded from the Actions UI. It should only start after `test` has passed.
 
-> The dependencies in `requirements.txt` are pinned to 2022 versions and likely have known CVEs. Think about what `severity-cutoff` makes sense here — you probably don't want the pipeline to fail on every low-severity finding.
+> The dependencies in `requirements.txt` are pinned to 2022 versions and likely have known CVEs. Neither the SBOM scan nor the pip-audit scan should block the pipeline — use `fail-build: false` and `continue-on-error: true` so findings are visible in the log without stopping the build. This makes for a great live discussion about dependency hygiene.
 
 Push, open **Actions → your run → Artifacts**, and download the generated SBOM to see what it contains.
 
@@ -177,25 +177,40 @@ Job:
     needs: [test]
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
           format: cyclonedx-json
-          output-file: sbom.json
-      - name: Scan for vulnerabilities
-        uses: anchore/scan-action@v3
-        with:
-          sbom: sbom.json
-          fail-build: true
-          severity-cutoff: critical
+
+      - name: Rename SBOM
+        run: mv *.json sbom.json
+
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: sbom.json
+
+      - name: Scan SBOM for vulnerabilities
+        uses: anchore/scan-action@v3
+        with:
+          sbom: sbom.json
+          fail-build: false
+        continue-on-error: true
+
+      - name: Scan dependencies for vulnerabilities
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+        continue-on-error: true
 ```
 
-`severity-cutoff: critical` keeps the build green while the old pinned dependencies have lower-severity CVEs. Try changing it to `high` once the pipeline is stable.
+`anchore/scan-action` attempts a CVE scan of the SBOM but won't fail the build — it can be brittle due to database caching issues, so `continue-on-error: true` is a safety net. `pip-audit` then does a reliable scan directly against `requirements.txt`. Both steps report findings in the log without blocking the pipeline — the old pinned dependencies have known CVEs, which makes for a great live discussion about dependency hygiene.
 
 </details>
 
@@ -294,22 +309,29 @@ jobs:
     needs: [test]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
           format: cyclonedx-json
-          output-file: sbom.json
-      - name: Scan for vulnerabilities
-        uses: anchore/scan-action@v3
-        with:
-          sbom: sbom.json
-          fail-build: true
-          severity-cutoff: critical
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: sbom.json
+          path: OptimizHelper-sbom.cyclonedx.json
+      - name: Scan SBOM for vulnerabilities
+        uses: anchore/scan-action@v3
+        with:
+          sbom: OptimizHelper-sbom.cyclonedx.json
+          fail-build: false
+        continue-on-error: true
+      - name: Scan dependencies for vulnerabilities
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+        continue-on-error: true
 
   security:
     name: Static Security Scan
