@@ -36,14 +36,14 @@ Push this file. An entry should appear in the **Actions** tab (doing nothing yet
 
 **What & why:** A linter reads your code without running it and flags style violations and common mistakes. Running it in CI means bad style never silently enters the main branch.
 
-**Tool:** [flake8](https://flake8.pycqa.org/) — the standard Python linter. Install it with `pip install flake8` and run it with `flake8 .`.
+**Tool:** [ruff](https://docs.astral.sh/ruff/) — a modern Python linter and formatter that is significantly faster than flake8 and covers the same rules. Install it with `pip install ruff` and run it with `ruff check .`.
 
 **Your task:** Add a job named `lint` that:
 1. checks out the code
 2. sets up Python 3.10
-3. installs and runs flake8
+3. installs and runs ruff
 
-> The existing codebase uses star imports and long lines. You will need a small `.flake8` config file at the project root to keep the linter happy — check the flake8 docs for `extend-ignore` and `max-line-length`.
+> The existing codebase uses star imports and long lines. You will need a small `ruff.toml` config file at the project root to keep the linter happy — check the ruff docs for `ignore` and `line-length`.
 
 Push and verify the job is green.
 
@@ -117,13 +117,14 @@ Stuck? Expand the section for the step you are on.
 <details>
 <summary><strong>Step 1 — Linting</strong></summary>
 
-Add `.flake8` at the project root:
+Add `ruff.toml` at the project root:
 
-```ini
-[flake8]
-max-line-length = 120
-extend-ignore = E402, F401, F403, F405
-exclude = .venv, tests
+```toml
+line-length = 120
+exclude = [".venv", "tests"]
+
+[lint]
+ignore = ["E402", "F401", "F403", "F405"]
 ```
 
 Job:
@@ -137,8 +138,8 @@ Job:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install flake8
-      - run: flake8 .
+      - run: pip install ruff
+      - run: ruff check .
 ```
 
 </details>
@@ -268,8 +269,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install flake8
-      - run: flake8 .
+      - run: pip install ruff
+      - run: ruff check .
 
   test:
     name: Test

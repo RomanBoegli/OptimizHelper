@@ -11,13 +11,14 @@ import pandas as pd
 from pyvis.network import Network
 
 # thanks & credits to https://github.com/nielstron/symplex
-from symplex.simplex import * 
+from symplex.simplex import *
 from symplex.perturb import *
 
 # thanks to Johannes
 import branch_and_bound as bb
 
 # ** This code lacks beauty and is (most probably) inefficient. I had little time. **
+
 
 @click.group(cls=SectionedHelpGroup)
 def main():
@@ -27,9 +28,9 @@ def main():
     pass
 
 
-@main.command(help_group='Part 1a')
-@click.argument('file', type=click.Path(exists=True))
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@main.command(help_group="Part 1a")
+@click.argument("file", type=click.Path(exists=True))
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
 def matanalysis(file, pretty):
     """Basic matrix analysis insights."""
     df = hf.read_ods(file, noheaders=True)
@@ -40,24 +41,52 @@ def matanalysis(file, pretty):
     imatc = sympy.nsimplify(sympy.Matrix(np.array(mat.T.tolist())[np.array(indcols)].T), rational=True)
     imatr = sympy.nsimplify(sympy.Matrix(np.array(mat.tolist())[np.array(indrows)]), rational=True)
     results = []
-    results.append(['provided input', '-', sympy.pretty(mat) if pretty else np.array(repr(mat.tolist())), 'rank=' + str(mat.rank())])
-    results.append(['independent cols', indcols, sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist())), 'full column rank' if imatc == mat else '-' ])
-    results.append(['independent rows', indrows, sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist())), 'full row rank' if imatr == mat else '-'])
+    results.append(
+        [
+            "provided input",
+            "-",
+            sympy.pretty(mat) if pretty else np.array(repr(mat.tolist())),
+            "rank=" + str(mat.rank()),
+        ]
+    )
+    results.append(
+        [
+            "independent cols",
+            indcols,
+            sympy.pretty(imatc) if pretty else np.array(repr(imatc.tolist())),
+            "full column rank" if imatc == mat else "-",
+        ]
+    )
+    results.append(
+        [
+            "independent rows",
+            indrows,
+            sympy.pretty(imatr) if pretty else np.array(repr(imatr.tolist())),
+            "full row rank" if imatr == mat else "-",
+        ]
+    )
     if sympy.shape(mat)[0] == sympy.shape(mat)[1] and mat.det() != 0:
-        results.append(['inverse', '-', sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist())), 'matrix is symmetric' if mat.is_symmetric() else '-'])
+        results.append(
+            [
+                "inverse",
+                "-",
+                sympy.pretty(mat.inv()) if pretty else np.array(repr(mat.inv().tolist())),
+                "matrix is symmetric" if mat.is_symmetric() else "-",
+            ]
+        )
     else:
-        results.append(['inverse', '-', '-', 'matrix must be square to invert'])
+        results.append(["inverse", "-", "-", "matrix must be square to invert"])
     table = [tabulate(results, headers=["insight", "descr", "matrix", "comment"], tablefmt="fancy_grid")]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 1a')
-@click.argument('file', type=click.Path(exists=True))
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@main.command(help_group="Part 1a")
+@click.argument("file", type=click.Path(exists=True))
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
 def hyperplanes(file, pretty):
     """Retruns basic & feasible solutions of an Ax<=b system with 2 or 3 dimensions. File must have the sheets named 'A' and 'b'."""
-    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
-    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="A", noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="b", noheaders=True)), rational=True)
     As = sympy.shape(A)
     bs = sympy.shape(b)
     _, indcols = A.rref()
@@ -69,13 +98,13 @@ def hyperplanes(file, pretty):
         return
     dim = As[1]
     if not (2 <= dim <= 3):
-        click.echo(f'Can only process 2D and 3D systems, you provided {dim} dimensions.')
+        click.echo(f"Can only process 2D and 3D systems, you provided {dim} dimensions.")
         return
     rows = As[0]
     if dim == 2:
         B = [(i, j) for i in range(rows) for j in range(i, rows)]
     else:
-        B= [(i, j, k) for i in range(rows) for j in range(i, rows) for k in range(j, rows)]
+        B = [(i, j, k) for i in range(rows) for j in range(i, rows) for k in range(j, rows)]
     B = [sub_list for sub_list in B if len(set(sub_list)) == dim]
     # check for duplicates
     uniquerows = []
@@ -89,7 +118,7 @@ def hyperplanes(file, pretty):
             uniquerows.append(checkrow_abs)
     results = []
     i = 0
-    
+
     for B_ in B:
         skip = False
         for elem in list(B_):
@@ -99,8 +128,8 @@ def hyperplanes(file, pretty):
         if skip:
             continue
         i += 1
-        B_print = tuple([x+1 for x in list(B_)])
-        selection = f'B{i}={B_print}'
+        B_print = tuple([x + 1 for x in list(B_)])
+        selection = f"B{i}={B_print}"
         if dim == 2:
             AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]))
             bB_ = sympy.Matrix.vstack(b.row(B_[0]), b.row(B_[1]))
@@ -110,34 +139,54 @@ def hyperplanes(file, pretty):
         _, indrows = AB_.T.rref()
         if len(B_) != len(indrows):
             AB_inv_inexist = AB_.det() == 0
-            results.append([
-                selection,
-                sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
-                'not invertible' if AB_inv_inexist else sympy.pretty(AB_.inv()) if pretty else np.array(repr(AB_.inv().tolist()))
-                , '-', '-', f'not a basic selection as\nrow(s) {set(B_print) - set([x+1 for x in list(indrows)])} are\nlinearly dependent'])
+            results.append(
+                [
+                    selection,
+                    sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
+                    "not invertible"
+                    if AB_inv_inexist
+                    else sympy.pretty(AB_.inv())
+                    if pretty
+                    else np.array(repr(AB_.inv().tolist())),
+                    "-",
+                    "-",
+                    f"not a basic selection as\nrow(s) {set(B_print) - set([x + 1 for x in list(indrows)])} are\nlinearly dependent",
+                ]
+            )
             continue
         xB_ = AB_.inv() * bB_
-        results.append([
-            selection,
-            sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
-            sympy.pretty(AB_.inv()) if pretty else np.array(repr(AB_.inv().tolist())),
-            sympy.pretty(bB_) if pretty else np.array(repr(bB_.tolist())),
-            sympy.pretty(xB_.T) if pretty else np.array(repr(xB_.T.tolist())),
-            'if equal to vertex\n  -> feasible\notherwise infeasible'])
-    table = [tabulate(results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid")]
-    click.echo("\n".join(table) + "\n *skipped rows due to duplicate: " +  str(set([x+1 for x in sorted(duplicaterowindexes)])))
+        results.append(
+            [
+                selection,
+                sympy.pretty(AB_) if pretty else np.array(repr(AB_.tolist())),
+                sympy.pretty(AB_.inv()) if pretty else np.array(repr(AB_.inv().tolist())),
+                sympy.pretty(bB_) if pretty else np.array(repr(bB_.tolist())),
+                sympy.pretty(xB_.T) if pretty else np.array(repr(xB_.T.tolist())),
+                "if equal to vertex\n  -> feasible\notherwise infeasible",
+            ]
+        )
+    table = [
+        tabulate(
+            results, headers=["possibility*", "ABi", "ABi^(-1)", "bBi", "xBi.T", "conclusion"], tablefmt="fancy_grid"
+        )
+    ]
+    click.echo(
+        "\n".join(table)
+        + "\n *skipped rows due to duplicate: "
+        + str(set([x + 1 for x in sorted(duplicaterowindexes)]))
+    )
 
 
-@main.command(help_group='Part 1a')
-@click.argument('file', type=click.Path(exists=True))
-@click.argument('basic_sel', nargs=-1)
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@main.command(help_group="Part 1a")
+@click.argument("file", type=click.Path(exists=True))
+@click.argument("basic_sel", nargs=-1)
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
 def simplex(file, basic_sel, pretty):
     """Applies Simplex on an Ax<=b system with 2 or 3 dimensions. File must have the sheets named 'A', 'b' and 'c'
     which together represent the LP in inequality form as maximization problem."""
-    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
-    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
-    c = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='c', noheaders=True)), rational=True)
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="A", noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="b", noheaders=True)), rational=True)
+    c = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="c", noheaders=True)), rational=True)
     As = sympy.shape(A)
     bs = sympy.shape(b)
     _, indcols = A.rref()
@@ -145,19 +194,19 @@ def simplex(file, basic_sel, pretty):
         click.echo("Invalid matrix input. A must be (r*c) and b (1*c).")
         return
     if As[1] != sympy.shape(c)[0]:
-        click.echo(f'Max. func. coeff. {tuple(c.tolist())} does not align with {As[1]}D matrix A.')
+        click.echo(f"Max. func. coeff. {tuple(c.tolist())} does not align with {As[1]}D matrix A.")
         return
     if len(indcols) != As[1]:
         click.echo("Matrix A has not full column rank (i.e. not all columns are linearly independent).")
         return
     dim = As[1]
     if not (2 <= dim <= 3):
-        click.echo(f'Can only process 2D and 3D systems, you provided {dim} dimensions.')
+        click.echo(f"Can only process 2D and 3D systems, you provided {dim} dimensions.")
         return
-    vals = [(int(i) -1) for i in list(basic_sel)]
+    vals = [(int(i) - 1) for i in list(basic_sel)]
     B_ = tuple(vals)
     if not (dim == len(B_)):
-        click.echo(f'The basic selection {basic_sel} does not align with the {dim}D matrix A')
+        click.echo(f"The basic selection {basic_sel} does not align with the {dim}D matrix A")
         return
     if dim == 2:
         AB_ = sympy.Matrix.vstack(A.row(B_[0]), A.row(B_[1]))
@@ -170,7 +219,7 @@ def simplex(file, basic_sel, pretty):
     opt_val = None
     v_star = None
     unique = False
-    #pivot_rule_p = PivotRule.MINIMAL()
+    # pivot_rule_p = PivotRule.MINIMAL()
     pivot_rule_i = PivotRule.MINIMAL()
     B = set(B_)
     v = AB_.inv() * bB_
@@ -187,14 +236,14 @@ def simplex(file, basic_sel, pretty):
     while res is None:
         iteration += 1
         B_print = tuple([x + 1 for x in list(B)])
-        selection = f'B{iteration} = {B_print}'
+        selection = f"B{iteration} = {B_print}"
         N = set(range(m)) - B
         AB = sub_matrix(A, sorted(list(B)))
         bB = sub_matrix(b, sorted(list(B)))
-        Ainv = AB ** -1 # Â
+        Ainv = AB**-1  # Â
         v_old = v
         if v != Ainv * bB:
-            click.echo('something is wrong')
+            click.echo("something is wrong")
         s = [Ainv[:, i] for i in range(n)]
         u = Ainv.transpose() * c
         if all(e >= 0 for e in u[:]):  # equivalent: all(c.transpose()*s[j] <= 0 for j in range(n)):
@@ -206,10 +255,10 @@ def simplex(file, basic_sel, pretty):
             opt_val = (c.transpose() * v)[0]
         else:
             # we can still improve along some edge
-            #valid_p = [p for p in range(n) if (c.transpose() * s[p])[0] > 0]
+            # valid_p = [p for p in range(n) if (c.transpose() * s[p])[0] > 0]
             ##p = pivot_rule_p(valid_p)
             p = np.array(u.tolist()).argmin(axis=0)[0]
-            d = (-s[p])
+            d = -s[p]
             d_idx = list(B)[p]
             Ad = A * d
             R = [i for i in N if Ad[i] > 0]
@@ -229,13 +278,16 @@ def simplex(file, basic_sel, pretty):
                 B = B - {i_out} | {i_in}
                 B_old_print = set([x + 1 for x in list(B_old)])
                 B_print = set([x + 1 for x in list(B)])
-                selection_new = f'B{iteration+1} = {B_print}\nout = j = {i_out+1}\nin = k = {i_in+1}' + \
-                                f'\n\nwrite as:\n' \
-                                f'{B_old_print} - {set([i_out+1])}\n∪\n{set([i_in+1])}\n= {B_print}'
-                lam_print = f'{lam} = λ = min({step_sizes})\n'\
-                            f'i.e. selection\nk = {tuple([x + 1 for x in list(R)])}\n'\
-                            f'cand. sel. = {tuple([x + 1 for x in list(i_in_candidates)])}\n'\
-                            f'took k = {i_in+1}'
+                selection_new = (
+                    f"B{iteration + 1} = {B_print}\nout = j = {i_out + 1}\nin = k = {i_in + 1}" + f"\n\nwrite as:\n"
+                    f"{B_old_print} - {set([i_out + 1])}\n∪\n{set([i_in + 1])}\n= {B_print}"
+                )
+                lam_print = (
+                    f"{lam} = λ = min({step_sizes})\n"
+                    f"i.e. selection\nk = {tuple([x + 1 for x in list(R)])}\n"
+                    f"cand. sel. = {tuple([x + 1 for x in list(i_in_candidates)])}\n"
+                    f"took k = {i_in + 1}"
+                )
 
                 v = v + lam * d
                 if B in visited_bases:
@@ -245,45 +297,77 @@ def simplex(file, basic_sel, pretty):
 
         if not res is None:
             v = v_star
-        results.append([iteration,
-                         selection,
-                         sympy.pretty(AB) if pretty else np.array(repr(AB.tolist())),
-                         sympy.pretty(bB) if pretty else np.array(repr(bB.tolist())),
-                         sympy.pretty(Ainv) if pretty else np.array(repr(Ainv.tolist())),
-                         sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
-                         sympy.pretty(v_old) if pretty else np.array(repr(v_old.tolist())),
-                         sympy.pretty(u) if pretty else np.array(repr(u.tolist())),
-                         'DONE' if not res is None else f'-Â{d_idx+1} = \n\n{sympy.pretty(d) if pretty else np.array(repr(d.tolist()))}',
-                         'DONE' if not res is None else sympy.pretty(Av) if pretty else np.array(repr(Av.tolist())),
-                         'DONE' if not res is None else sympy.pretty(Ad) if pretty else np.array(repr(Ad.tolist())),
-                         'DONE' if not res is None else sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
-                         'DONE' if not res is None else lam_print,
-                         'DONE' if not res is None else selection_new,
-                         sympy.pretty(v) if pretty else np.array(repr(v.tolist())),
-                         ])
+        results.append(
+            [
+                iteration,
+                selection,
+                sympy.pretty(AB) if pretty else np.array(repr(AB.tolist())),
+                sympy.pretty(bB) if pretty else np.array(repr(bB.tolist())),
+                sympy.pretty(Ainv) if pretty else np.array(repr(Ainv.tolist())),
+                sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
+                sympy.pretty(v_old) if pretty else np.array(repr(v_old.tolist())),
+                sympy.pretty(u) if pretty else np.array(repr(u.tolist())),
+                "DONE"
+                if not res is None
+                else f"-Â{d_idx + 1} = \n\n{sympy.pretty(d) if pretty else np.array(repr(d.tolist()))}",
+                "DONE" if not res is None else sympy.pretty(Av) if pretty else np.array(repr(Av.tolist())),
+                "DONE" if not res is None else sympy.pretty(Ad) if pretty else np.array(repr(Ad.tolist())),
+                "DONE" if not res is None else sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
+                "DONE" if not res is None else lam_print,
+                "DONE" if not res is None else selection_new,
+                sympy.pretty(v) if pretty else np.array(repr(v.tolist())),
+            ]
+        )
 
-    table = [tabulate(results,
-                      headers=['iter', 'selection', 'AB', 'bB', 'Â=AB^(-1)', 'c', 'v = Â*bB', 'u = c*Â^(T)', 'd',
-                               'Av', 'Ad', 'b', 'λ = min(stepsizes)', 'selection_new', 'v\''],
-                      tablefmt='fancy_grid')]
-    click.echo("\n".join(table) +
-               f'\n\nresult = {res}'
-               f'\nv* = {np.array(repr(v_star.tolist())) if not v_star is None else "none"}'
-               f'\noptimal_value =  c^T * v = {opt_val} (maximization problem)'
-               f'\noptimal_value = -c^T * v = {(-1 * c.transpose() * v)[0]} (minimization problem)'
-               f'\nunique = {unique}')
+    table = [
+        tabulate(
+            results,
+            headers=[
+                "iter",
+                "selection",
+                "AB",
+                "bB",
+                "Â=AB^(-1)",
+                "c",
+                "v = Â*bB",
+                "u = c*Â^(T)",
+                "d",
+                "Av",
+                "Ad",
+                "b",
+                "λ = min(stepsizes)",
+                "selection_new",
+                "v'",
+            ],
+            tablefmt="fancy_grid",
+        )
+    ]
+    click.echo(
+        "\n".join(table) + f"\n\nresult = {res}"
+        f"\nv* = {np.array(repr(v_star.tolist())) if not v_star is None else 'none'}"
+        f"\noptimal_value =  c^T * v = {opt_val} (maximization problem)"
+        f"\noptimal_value = -c^T * v = {(-1 * c.transpose() * v)[0]} (minimization problem)"
+        f"\nunique = {unique}"
+    )
 
 
-@main.command(help_group='Part 1a')
-@click.argument('file', type=click.Path(exists=True))
-@click.option('--xlim', '-x', default=(-10, 10), type=(float, float), multiple=False, help='set x-axis range')
-@click.option('--ylim', '-y', default=(-10, 10), type=(float, float), multiple=False, help='set y-axis range')
-@click.option('--gomory', '-gc', default=None, type=(float, int, float, int), multiple=False, help='params to combine two inequalities')
-@click.option('--show', '-s', is_flag=True, help='show plot in interactive window')
+@main.command(help_group="Part 1a")
+@click.argument("file", type=click.Path(exists=True))
+@click.option("--xlim", "-x", default=(-10, 10), type=(float, float), multiple=False, help="set x-axis range")
+@click.option("--ylim", "-y", default=(-10, 10), type=(float, float), multiple=False, help="set y-axis range")
+@click.option(
+    "--gomory",
+    "-gc",
+    default=None,
+    type=(float, int, float, int),
+    multiple=False,
+    help="params to combine two inequalities",
+)
+@click.option("--show", "-s", is_flag=True, help="show plot in interactive window")
 def plot(file, xlim, ylim, gomory, show):
     """Plots a 2D system of inequalities provided in Ax<=b form. File must have the sheets named 'A' and 'b'."""
-    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='A', noheaders=True)), rational=True)
-    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet='b', noheaders=True)), rational=True)
+    A = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="A", noheaders=True)), rational=True)
+    b = sympy.nsimplify(sympy.Matrix(hf.read_ods(file, sheet="b", noheaders=True)), rational=True)
     As = sympy.shape(A)
     bs = sympy.shape(b)
     _, indcols = A.rref()
@@ -291,31 +375,41 @@ def plot(file, xlim, ylim, gomory, show):
         click.echo("Invalid matrix input. A must be (r*c) and b (1*c).")
         return
     dim = As[1]
-    if (dim != 2):
-        click.echo(f'Can only process 2D systems, you provided {dim} dimensions.')
+    if dim != 2:
+        click.echo(f"Can only process 2D systems, you provided {dim} dimensions.")
         return
-    x, y = sympy.symbols('x y')
+    x, y = sympy.symbols("x y")
     rows = As[0]
     inequalities = []
     equalities = []
     for r in range(rows):
-        inequalities.append(A.row(r)[0]*x + A.row(r)[1]*y <= b[r])
-        equalities.append(sympy.Eq(A.row(r)[0]*x + A.row(r)[1]*y, b[r]))
+        inequalities.append(A.row(r)[0] * x + A.row(r)[1] * y <= b[r])
+        equalities.append(sympy.Eq(A.row(r)[0] * x + A.row(r)[1] * y, b[r]))
 
     polyhedron = inequalities[0]
     for r in range(1, rows):
         polyhedron = sympy.And(polyhedron, inequalities[r])
-    p = sympy.plot_implicit(polyhedron, x_var=(x, xlim[0], xlim[1]), y_var=(y, ylim[0], ylim[1]), line_color='grey', show=False)
+    p = sympy.plot_implicit(
+        polyhedron, x_var=(x, xlim[0], xlim[1]), y_var=(y, ylim[0], ylim[1]), line_color="grey", show=False
+    )
     i = 0
     for eq in equalities:
         u = sympy.solve(eq, y)
         if len(u) == 0:
             eq = sympy.Eq(eq.args[0] + 0.00000000000000001 * y, eq.args[1])
             u = sympy.solve(eq, y)
-        p1 = sympy.plot(u[0], (x, xlim[0], xlim[1]), xlim=xlim, ylim=ylim, label=f'({i+1}) {str(inequalities[i])}', legend=True, show=False)
+        p1 = sympy.plot(
+            u[0],
+            (x, xlim[0], xlim[1]),
+            xlim=xlim,
+            ylim=ylim,
+            label=f"({i + 1}) {str(inequalities[i])}",
+            legend=True,
+            show=False,
+        )
         p.extend(p1)
         i += 1
-    gc_result = ''
+    gc_result = ""
     if not gomory is None:
         c1 = gomory[0]
         h1 = equalities[gomory[1] - 1]
@@ -326,74 +420,82 @@ def plot(file, xlim, ylim, gomory, show):
         if len(u) == 0:
             eq = sympy.Eq(f_gc.args[0] + 0.00000000000000001 * y, f_gc.args[1])
             u = sympy.solve(eq, y)
-        p1 = sympy.plot(u[0], label=f'gc(({gomory[1]})+({gomory[3]})) {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])}', legend=True, show=False)
+        p1 = sympy.plot(
+            u[0],
+            label=f"gc(({gomory[1]})+({gomory[3]})) {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])}",
+            legend=True,
+            show=False,
+        )
         p.extend(p1)
-        gc_result = f'\ngc-cut with {c1}*({gomory[1]}) +  {c2}*({gomory[3]}) \n' \
-                    f'= ({c1}*[{sympy.pretty(h1.args[0])}]) + ({c2}*[{sympy.pretty(h2.args[0])}]) ≤ ⌊({c1}*[{sympy.pretty(h1.args[1])}]) + ({c2}*[{sympy.pretty(h2.args[1])}])⌋ \n' \
-                    f'= {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])} '
+        gc_result = (
+            f"\ngc-cut with {c1}*({gomory[1]}) +  {c2}*({gomory[3]}) \n"
+            f"= ({c1}*[{sympy.pretty(h1.args[0])}]) + ({c2}*[{sympy.pretty(h2.args[0])}]) ≤ ⌊({c1}*[{sympy.pretty(h1.args[1])}]) + ({c2}*[{sympy.pretty(h2.args[1])}])⌋ \n"
+            f"= {sympy.pretty(f_gc.args[0])} ≤ {sympy.pretty(f_gc.args[1])} "
+        )
 
-    p.__setattr__('xlim', xlim)
-    p.__setattr__('ylim', ylim)
+    p.__setattr__("xlim", xlim)
+    p.__setattr__("ylim", ylim)
     p.legend = True
-    image = './plot.png'
+    image = "./plot.png"
     p.save(image)
     click.echo("result saved as: " + image + gc_result)
     if show:
         p.show()
 
 
-@main.command(help_group='Part 1a')
-@click.argument('file', type=click.Path(exists=True))
-@click.option('--knapsack', '-k', is_flag=True, help='Knapsack problem')
-@click.option('--rounddownfirst', is_flag=True, help='Node successor strategy (default is rounding up first)')
+@main.command(help_group="Part 1a")
+@click.argument("file", type=click.Path(exists=True))
+@click.option("--knapsack", "-k", is_flag=True, help="Knapsack problem")
+@click.option("--rounddownfirst", is_flag=True, help="Node successor strategy (default is rounding up first)")
 def branchbound(file, knapsack, rounddownfirst):
     """IP relaxation on an Ax<=b system. File must have the sheets named 'A', 'b' and 'c'
     which together represent the LP in inequality form as maximization problem."""
-    A = np.array(hf.read_ods(file, sheet='A', noheaders=True), dtype=int)
-    b = np.array(hf.read_ods(file, sheet='b', noheaders=True), dtype=int)
-    c = np.array(hf.read_ods(file, sheet='c', noheaders=True), dtype=int)[0]
+    A = np.array(hf.read_ods(file, sheet="A", noheaders=True), dtype=int)
+    b = np.array(hf.read_ods(file, sheet="b", noheaders=True), dtype=int)
+    c = np.array(hf.read_ods(file, sheet="c", noheaders=True), dtype=int)[0]
     round_up_first = not rounddownfirst
-    file = './tree.png'
+    file = "./tree.png"
     if knapsack:
         val_per_vol = c / A[0]
         sort_idxs = np.flipud(np.argsort(val_per_vol))
         c = c[sort_idxs]
         A[0] = A[0][sort_idxs]
-        table = bb.branch_and_bound_ilp(A, b, c, relax=bb.knapsack_relax, round_up_first=round_up_first, graph_path=file)
+        table = bb.branch_and_bound_ilp(
+            A, b, c, relax=bb.knapsack_relax, round_up_first=round_up_first, graph_path=file
+        )
     else:
         table = bb.branch_and_bound_ilp(A, b, c, round_up_first=round_up_first, graph_path=file)
 
     click.echo("\n".join(table))
-    click.echo(f'\nresult saved as: {file}')
+    click.echo(f"\nresult saved as: {file}")
 
 
-
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.option('--wrt', default='x', help='partial derivative with respect to variable (type \'all\' for all)')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.option("--wrt", default="x", help="partial derivative with respect to variable (type 'all' for all)")
 def diffbeauty(expression, wrt):
     """Returns the derivative in pretty form."""
     expr = hf.str_to_expression(expression)
     results = []
-    if wrt == 'all':
+    if wrt == "all":
         for v in expr.free_symbols:
-            results.append(''.join(['f' + str(v), ':\n', sympy.pretty(sympy.diff(expr, v), use_unicode=True)]))
+            results.append("".join(["f" + str(v), ":\n", sympy.pretty(sympy.diff(expr, v), use_unicode=True)]))
     else:
-        results.append(''.join(['f' + wrt, ":\n", sympy.pretty(sympy.diff(expr, wrt), use_unicode=True)]))
+        results.append("".join(["f" + wrt, ":\n", sympy.pretty(sympy.diff(expr, wrt), use_unicode=True)]))
     click.echo("\n\n".join(results))
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
 def difftree(expression):
     """Returns all partial derivatives as a tree."""
     tree = hf.__difftree_rec(expression)
     click.echo(tree.show())
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.argument('values', nargs=-1)
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.argument("values", nargs=-1)
 def evaluate(expression, values):
     """Evaluates a function with a given substitution (assumes alphabetic order)."""
     expr = hf.str_to_expression(expression)
@@ -401,8 +503,8 @@ def evaluate(expression, values):
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
-        s = ['', 's'][missing>1]
-        click.echo(f'Missing {missing} value{s}')
+        s = ["", "s"][missing > 1]
+        click.echo(f"Missing {missing} value{s}")
         return
     if missing < 0:
         # omit surplus
@@ -411,10 +513,10 @@ def evaluate(expression, values):
     click.echo(sympy.nsimplify(r, tolerance=1e-10, rational=True))
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.option("--sub", "-s", default=None, type=(str, float), multiple=True, help="variable name and its value")
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
 def gradient(expression, sub, pretty):
     """Returns the gradient of the given function."""
     expr = hf.str_to_expression(expression)
@@ -422,7 +524,7 @@ def gradient(expression, sub, pretty):
     G = sympy.simplify(grad(expr, vars))
     if len(sub) > 0:
         G = G.evalf(subs=dict((v, x) for v, x in sub))
-        G = (sympy.nsimplify(G, tolerance=1e-10, rational=True))
+        G = sympy.nsimplify(G, tolerance=1e-10, rational=True)
     if pretty:
         click.echo(sympy.pprint(G))
     else:
@@ -430,17 +532,17 @@ def gradient(expression, sub, pretty):
         for row in G.tolist():
             r_print = []
             for expr in row:
-                k = sympy.sstr(expr).replace('**', '^').replace('*', '')
+                k = sympy.sstr(expr).replace("**", "^").replace("*", "")
                 r_print.append(k)
             G_print.append(r_print)
         click.echo(np.array(repr(G_print)))
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
-@click.option('--det', '-d', is_flag=True, help="return only determinant of hessian matrix")
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.option("--sub", "-s", default=None, type=(str, float), multiple=True, help="variable name and its value")
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
+@click.option("--det", "-d", is_flag=True, help="return only determinant of hessian matrix")
 def hessian(expression, sub, pretty, det):
     """Returns Hessian matrix or its determinant of a given function."""
     expr = hf.str_to_expression(expression)
@@ -449,9 +551,9 @@ def hessian(expression, sub, pretty, det):
     H_det = sympy.simplify(H.det())
     if len(sub) > 0:
         H = H.evalf(subs=dict((v, x) for v, x in sub))
-        H = (sympy.nsimplify(H, tolerance=1e-10, rational=True))
+        H = sympy.nsimplify(H, tolerance=1e-10, rational=True)
         H_det = H.det().evalf(subs=dict((v, x) for v, x in sub))
-        H_det = (sympy.nsimplify(H_det, tolerance=1e-10, rational=True))
+        H_det = sympy.nsimplify(H_det, tolerance=1e-10, rational=True)
     if pretty:
         if det:
             click.echo(sympy.pprint(H_det))
@@ -459,22 +561,22 @@ def hessian(expression, sub, pretty, det):
             click.echo(sympy.pprint(H))
     else:
         if det:
-            click.echo(np.array(sympy.sstr(H_det).replace('**', '^').replace('*', '')))
+            click.echo(np.array(sympy.sstr(H_det).replace("**", "^").replace("*", "")))
         else:
             H_print = []
             for row in H.tolist():
                 r_print = []
                 for expr in row:
-                    k = sympy.sstr(expr).replace('**', '^').replace('*', '')
+                    k = sympy.sstr(expr).replace("**", "^").replace("*", "")
                     r_print.append(k)
                 H_print.append(r_print)
             click.echo(np.array(repr(H_print)))
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.option('--sub', '-s', default=None, type=(str, float), multiple=True, help='variable name and its value')
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.option("--sub", "-s", default=None, type=(str, float), multiple=True, help="variable name and its value")
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
 def newton(expression, sub, pretty):
     """Applies one step of Newton's method."""
     expr = hf.str_to_expression(expression)
@@ -492,33 +594,37 @@ def newton(expression, sub, pretty):
     b = sympy.nsimplify(H_inv, tolerance=1e-10, rational=True)
     c = sympy.nsimplify(G, tolerance=1e-10, rational=True)
     abc = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)
-    results = [[sympy.pretty(a) if pretty else np.array(repr(a.tolist())),
-                sympy.pretty(_b) if pretty else np.array(repr(_b.tolist())),
-                sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
-                sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
-                sympy.pretty(abc) if pretty else np.array(repr(abc.tolist()))]]
-    table = [tabulate(results, headers=['a=(x0, y0)', 'H', 'b=H^(-1)', 'c=∇f(x0, y0)', 'a-bc=(x1, y1)'])]
+    results = [
+        [
+            sympy.pretty(a) if pretty else np.array(repr(a.tolist())),
+            sympy.pretty(_b) if pretty else np.array(repr(_b.tolist())),
+            sympy.pretty(b) if pretty else np.array(repr(b.tolist())),
+            sympy.pretty(c) if pretty else np.array(repr(c.tolist())),
+            sympy.pretty(abc) if pretty else np.array(repr(abc.tolist())),
+        ]
+    ]
+    table = [tabulate(results, headers=["a=(x0, y0)", "H", "b=H^(-1)", "c=∇f(x0, y0)", "a-bc=(x1, y1)"])]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.argument('values', nargs=-1)
-@click.option('--stepsize', '-s', default=1, type=int, help='step size B (default=1)')
-@click.option('--maxsteps', '-m', default=None, type=int, help='limit amount of steps')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.argument("values", nargs=-1)
+@click.option("--stepsize", "-s", default=1, type=int, help="step size B (default=1)")
+@click.option("--maxsteps", "-m", default=None, type=int, help="limit amount of steps")
 def succhalv(expression, values, stepsize, maxsteps):
     """Applies Gradient method with successive halving and parabola fitting on 2D or 3D functions."""
     expr = hf.str_to_expression(expression)
     vars = list(sympy.ordered(expr.free_symbols))
     if not (2 <= len(vars) <= 3):
-        click.echo(f'Can only process function with at most 3 dimensions, you provided {len(vars)} dimensions.')
+        click.echo(f"Can only process function with at most 3 dimensions, you provided {len(vars)} dimensions.")
         return
     ThreeD = True if len(vars) == 3 else False
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
-        s = ['', 's'][missing > 1]
-        click.echo(f'Missing {missing} value{s}')
+        s = ["", "s"][missing > 1]
+        click.echo(f"Missing {missing} value{s}")
         return
     if missing < 0:
         # omit surplus
@@ -530,7 +636,7 @@ def succhalv(expression, values, stepsize, maxsteps):
     G = G.evalf(subs=dict(zip(vars, vals)))
     graddres = sympy.nsimplify(G, tolerance=1e-10, rational=True)
 
-    x0, y0, z0, B, gx0, gy0, gz0 = sympy.symbols('x0, y0, z0, B, gx0, gy0, gz0')
+    x0, y0, z0, B, gx0, gy0, gz0 = sympy.symbols("x0, y0, z0, B, gx0, gy0, gz0")
     exp1 = x0 + (-B * gx0)
     exp2 = y0 + (-B * gy0)
     res_exp1 = graddres[0]
@@ -542,41 +648,56 @@ def succhalv(expression, values, stepsize, maxsteps):
     f_result = 0
     results = []
     while True:
-        currentB = stepsize * 0.5 ** halvings
+        currentB = stepsize * 0.5**halvings
         x1 = exp1.subs([(x0, vals[0]), (B, currentB), (gx0, res_exp1)])
         y1 = exp2.subs([(y0, vals[1]), (B, currentB), (gy0, res_exp2)])
         if ThreeD:
             z1 = exp3.subs([(z0, vals[2]), (B, currentB), (gz0, res_exp3)])
         f_result_previous = f_result
         f_result = expr.subs(zip(vars, [x1, y1])) if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
-        x1y1z1 = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
-        results.append([halvings, currentB, x1y1z1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue])
+        x1y1z1 = "({0}, {1}{2})".format(
+            hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), "" if not ThreeD else ", " + str(hf.__rstrip_zeros(z1))
+        )
+        results.append(
+            [halvings, currentB, x1y1z1, sympy.nsimplify(f_result, tolerance=1e-10, rational=True), f_result < refValue]
+        )
         if f_result < refValue or (maxsteps is not None and halvings == maxsteps):
-            B_star = currentB / 2 * (3 * refValue - 4 * f_result + f_result_previous) / (refValue - 2 * f_result + f_result_previous)
+            B_star = (
+                currentB
+                / 2
+                * (3 * refValue - 4 * f_result + f_result_previous)
+                / (refValue - 2 * f_result + f_result_previous)
+            )
             x1 = exp1.subs([(x0, vals[0]), (B, B_star), (gx0, res_exp1)])
             y1 = exp2.subs([(y0, vals[1]), (B, B_star), (gy0, res_exp2)])
             if ThreeD:
                 z1 = exp3.subs([(z0, vals[2]), (B, B_star), (gz0, res_exp3)])
-            x1y1z1_star = "({0}, {1}{2})".format(hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), '' if not ThreeD else ', ' + str(hf.__rstrip_zeros(z1)))
-            f_result_better = expr.subs(zip(vars, [x1, y1]))  if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
-            results.append(['B*', B_star, x1y1z1_star, hf.__rstrip_zeros(f_result_better), ' - '])
-            table = [tabulate(results,
-                              headers=["#", "B", "(x1, y1)", "f(x1, y1)", "< " + sympy.pretty(refValue) + " ?"],
-                              tablefmt="simple")]
+            x1y1z1_star = "({0}, {1}{2})".format(
+                hf.__rstrip_zeros(x1), hf.__rstrip_zeros(y1), "" if not ThreeD else ", " + str(hf.__rstrip_zeros(z1))
+            )
+            f_result_better = expr.subs(zip(vars, [x1, y1])) if not ThreeD else expr.subs(zip(vars, [x1, y1, z1]))
+            results.append(["B*", B_star, x1y1z1_star, hf.__rstrip_zeros(f_result_better), " - "])
+            table = [
+                tabulate(
+                    results,
+                    headers=["#", "B", "(x1, y1)", "f(x1, y1)", "< " + sympy.pretty(refValue) + " ?"],
+                    tablefmt="simple",
+                )
+            ]
             break
         else:
             halvings += 1
-    click.echo('\n'.join(table) +
-               f'\n\n(x1, y1) = {x1y1z1}' +
-               f'\n(x1, y1) = {x1y1z1_star}  <-- parabola fitted using B*')
+    click.echo(
+        "\n".join(table) + f"\n\n(x1, y1) = {x1y1z1}" + f"\n(x1, y1) = {x1y1z1_star}  <-- parabola fitted using B*"
+    )
 
 
-@main.command(help_group='Part 2a')
-@click.argument('expression')
-@click.argument('values', nargs=-1)
-@click.option('--steps', '-s', default=3, type=int, help='amount of steps')
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
-@click.option('--rational', '-r', is_flag=True, help='rational numbers')
+@main.command(help_group="Part 2a")
+@click.argument("expression")
+@click.argument("values", nargs=-1)
+@click.option("--steps", "-s", default=3, type=int, help="amount of steps")
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
+@click.option("--rational", "-r", is_flag=True, help="rational numbers")
 def broyden(expression, values, steps, pretty, rational):
     """Iterating optimization using Broyden's method given a function and starting value."""
     expr = hf.str_to_expression(expression)
@@ -584,8 +705,8 @@ def broyden(expression, values, steps, pretty, rational):
     vals = [hf.__convert_to_float(i) for i in list(values)]
     missing = len(vars) - len(vals)
     if missing > 0:
-        s = ['', 's'][missing>1]
-        click.echo(f'Missing {missing} value{s}')
+        s = ["", "s"][missing > 1]
+        click.echo(f"Missing {missing} value{s}")
         return
     if missing < 0:
         # omit surplus
@@ -625,28 +746,46 @@ def broyden(expression, values, steps, pretty, rational):
         gi = (sympy.nsimplify(g, tolerance=1e-10, rational=True) if len(g) > 0 else g) if rational else g
         Ai = sympy.nsimplify(A, tolerance=1e-10, rational=True) if rational else A
         Gi = sympy.nsimplify(G.T, tolerance=1e-10, rational=True) if rational else G.T
-        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)  if rational else new_point
-        results.append([step, 
-                        sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
-                        sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
-                        sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
-                        sympy.pretty(Ai) if pretty else np.array(Ai),
-                        sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
-                        sympy.pretty(xy_new) if pretty else np.array(xy_new[0:])])
+        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True) if rational else new_point
+        results.append(
+            [
+                step,
+                sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
+                sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
+                sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
+                sympy.pretty(Ai) if pretty else np.array(Ai),
+                sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
+                sympy.pretty(xy_new) if pretty else np.array(xy_new[0:]),
+            ]
+        )
         x_point_histroy.append(new_point)
         point = new_point
         step += 1
 
-    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    table = [
+        tabulate(
+            results,
+            headers=["i", "[Xi, Yi]", "di", "gi", "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"],
+            tablefmt="fancy_grid",
+        )
+    ]
     click.echo("\n".join(table))
 
-@main.command(help_group='Part 2a')
-@click.option('--startingpoint', '-sp', default=None, type=(float, float), multiple=False, help='starting point')
-@click.option('--gradient', '-g', default=None, type=(float, float), multiple=True, help='gradient ∇f(X0, Y0)')
-@click.option('--hessian_inv', '-h', default=None, type=(float, float, float, float), multiple=False, help='H^(-1)_(X0, Y0) in form of (c1, c2, c3, c4) going from left to right, row by row')
-@click.option('--steps', '-s', default=3, type=int, help='amount of steps (for each step, a --gradient must be passed)')
-@click.option('--pretty', '-p', is_flag=True, help='prettier print output')
-@click.option('--rational', '-r', is_flag=True, help='rational numbers')
+
+@main.command(help_group="Part 2a")
+@click.option("--startingpoint", "-sp", default=None, type=(float, float), multiple=False, help="starting point")
+@click.option("--gradient", "-g", default=None, type=(float, float), multiple=True, help="gradient ∇f(X0, Y0)")
+@click.option(
+    "--hessian_inv",
+    "-h",
+    default=None,
+    type=(float, float, float, float),
+    multiple=False,
+    help="H^(-1)_(X0, Y0) in form of (c1, c2, c3, c4) going from left to right, row by row",
+)
+@click.option("--steps", "-s", default=3, type=int, help="amount of steps (for each step, a --gradient must be passed)")
+@click.option("--pretty", "-p", is_flag=True, help="prettier print output")
+@click.option("--rational", "-r", is_flag=True, help="rational numbers")
 def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
     """Iterating optimization using Broyden's method given the interim results starting point, gradient, and inverted hessian matrix."""
     step = 0
@@ -665,7 +804,7 @@ def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
         x_gradient_histroy.append(G)
         if step == 0:
             # inverse hessian
-            A = sympy.Matrix([ [hessian_inv[0], hessian_inv[1]], [hessian_inv[2], hessian_inv[3]] ])
+            A = sympy.Matrix([[hessian_inv[0], hessian_inv[1]], [hessian_inv[2], hessian_inv[3]]])
         else:
             # approximation
             d = x_point_histroy[-1] - x_point_histroy[-2]
@@ -680,23 +819,33 @@ def broydeninter(startingpoint, gradient, hessian_inv, steps, pretty, rational):
         gi = (sympy.nsimplify(g, tolerance=1e-10, rational=True) if len(g) > 0 else g) if rational else g
         Ai = sympy.nsimplify(A, tolerance=1e-10, rational=True) if rational else A
         Gi = sympy.nsimplify(G.T, tolerance=1e-10, rational=True) if rational else G.T
-        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True)  if rational else new_point
-        results.append([step,
-                        sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
-                        sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
-                        sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
-                        sympy.pretty(Ai) if pretty else np.array(Ai),
-                        sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
-                        sympy.pretty(xy_new) if pretty else np.array(xy_new[0:])])
+        xy_new = sympy.nsimplify(new_point, tolerance=1e-10, rational=True) if rational else new_point
+        results.append(
+            [
+                step,
+                sympy.pretty(xiyi) if pretty else np.array(xiyi[0:]),
+                sympy.pretty(di) if pretty & len(d) > 0 else np.array(di[0:]),
+                sympy.pretty(gi) if pretty & len(g) > 0 else np.array(gi[0:]),
+                sympy.pretty(Ai) if pretty else np.array(Ai),
+                sympy.pretty(Gi) if pretty else np.array(Gi[0:]),
+                sympy.pretty(xy_new) if pretty else np.array(xy_new[0:]),
+            ]
+        )
         x_point_histroy.append(new_point)
         step += 1
 
-    table = [tabulate(results, headers=["i", "[Xi, Yi]", 'di', 'gi', "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"], tablefmt="fancy_grid")]
+    table = [
+        tabulate(
+            results,
+            headers=["i", "[Xi, Yi]", "di", "gi", "Ai^(-1)", "∇f(Xi, Yi)", "[X(i+1), Y(i+1)]"],
+            tablefmt="fancy_grid",
+        )
+    ]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2a', short_help='asdf')
-@click.argument('values', nargs=-1)
+@main.command(help_group="Part 2a", short_help="asdf")
+@click.argument("values", nargs=-1)
 def aitken(values):
     """Returns the Aitken sequence for a value series of at least 3."""
     values = [hf.__convert_to_float(i) for i in list(values)]
@@ -710,30 +859,30 @@ def aitken(values):
         if i < 2:
             results.append([i, v, "-"])
             continue
-        aitkenval = values[i] - (values[i] - values[i-1])**2 / (values[i] - 2 * values[i-1] + values[i-2])
+        aitkenval = values[i] - (values[i] - values[i - 1]) ** 2 / (values[i] - 2 * values[i - 1] + values[i - 2])
         results.append([i, v, aitkenval])
 
     table = [tabulate(results, headers=["i", "Xi", "Aitken Yi"], tablefmt="simple")]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.option("--format", default='html', help="Interactive ('html') or static ('png')")
-@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.option("--format", default="html", help="Interactive ('html') or static ('png')")
+@click.option("--directed", "-d", is_flag=True, help="Use for directed graphs")
 def drawgraph(csvfile, directed, format):
     """Plots a graph based on provided adjacency matrix."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
-    with open(csvfile, 'r') as f:
+    with open(csvfile, "r") as f:
         d_reader = csv.DictReader(f)
         headers = d_reader.fieldnames
     labels = hf.__make_label_dict(headers[1:])
     edge_labels = dict(((u, v), d["weight"]) for u, v, d in G.edges(data=True))
-    pos = nx.spring_layout(G, k=(5 / (G.order()**(1/2))), iterations=20, scale=5)
+    pos = nx.spring_layout(G, k=(5 / (G.order() ** (1 / 2))), iterations=20, scale=5)
     nx.draw(G, pos)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
     nx.draw(G, pos, node_size=500, with_labels=True)
-    N = Network(height='75%', width='100%', directed=directed)
+    N = Network(height="75%", width="100%", directed=directed)
     N.force_atlas_2based()
     i = 0
     for n in G.nodes:
@@ -742,19 +891,19 @@ def drawgraph(csvfile, directed, format):
     for e in G.edges.data("weight", default=1):
         N.add_edge(e[0], e[1], title=e[2], value=e[2], width=e[2], arrowStrikethrough=False)
     N.show_buttons(filter_=["physics"])
-    file = './graph.'
-    if format == 'html':
-        file = file + 'html'
+    file = "./graph."
+    if format == "html":
+        file = file + "html"
         N.write_html(file)
     else:
-        file = file + 'png'
+        file = file + "png"
         plt.savefig(file, format="PNG")
 
     click.echo("result saved as: " + file)
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
 def mst(csvfile):
     """Returns the minimum spanning tree of an undirected graph."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
@@ -762,39 +911,39 @@ def mst(csvfile):
     results = []
     totalweight = 0
     for e in sorted(T.edges(data=True)):
-        totalweight += e[2]['weight']
-        results.append([e[0], e[1], e[2]['weight']])
+        totalweight += e[2]["weight"]
+        results.append([e[0], e[1], e[2]["weight"]])
     results.append(["----", "SUM:", totalweight])
     table = [tabulate(results, headers=["From", "To", "Weight"], tablefmt="simple")]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.argument('fromnode')
-@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.argument("fromnode")
+@click.option("--directed", "-d", is_flag=True, help="Use for directed graphs")
 def dijkstra(csvfile, fromnode, directed):
     """All shortest paths to all other nodes from given starting node using an (un)directed adjacency matrix."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
-    p = nx.shortest_path(G, source=fromnode, weight='weight')
-    df = pd.DataFrame({'target': p.keys(), 'sp': p.values()})
+    p = nx.shortest_path(G, source=fromnode, weight="weight")
+    df = pd.DataFrame({"target": p.keys(), "sp": p.values()})
     results = []
-    for item in df.get('sp'):
-        k = nx.path_weight(G, item, 'weight')
+    for item in df.get("sp"):
+        k = nx.path_weight(G, item, "weight")
         results.append([item, k])
     table = [tabulate(results, headers=["Shortest Path", "Total Weight"], tablefmt="simple")]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.argument('fromnode')
-@click.argument('style')
-@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.argument("fromnode")
+@click.argument("style")
+@click.option("--directed", "-d", is_flag=True, help="Use for directed graphs")
 def traverse(csvfile, fromnode, style, directed):
     """Traverses graph provided as (un)directed adjacency matrix either breadth-first (style='bf') or depth-first (style='df')."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile, isDirected=directed)
-    if style == 'bf':
+    if style == "bf":
         edges = nx.bfs_edges(G, fromnode)
     else:
         edges = nx.dfs_edges(G, fromnode)
@@ -807,56 +956,56 @@ def traverse(csvfile, fromnode, style, directed):
         nodes.append(e[1])
         i += 1
     table = [tabulate(results, headers=["Step", "From", "To"], tablefmt="simple")]
-    if style == 'df':
+    if style == "df":
         nodes = nodes_dfs
     click.echo("\n".join(table) + "\nEncounter Order: " + " → ".join(nodes))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.option("--onlyuse", default='all', help="Node constraints (e.g. 'A, D, F')")
-@click.option('--directed', '-d', is_flag=True, help='Use for directed graphs')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.option("--onlyuse", default="all", help="Node constraints (e.g. 'A, D, F')")
+@click.option("--directed", "-d", is_flag=True, help="Use for directed graphs")
 def floydwarshall(csvfile, onlyuse, directed):
     """Returns matrix with shortest distances between all nodes."""
     G, m, labels = hf.__get_graph_from_adjacency_matrix(csvfile, filling_values=np.inf, isDirected=directed)
-    if onlyuse == 'all':
-        #p = nx.floyd_warshall_numpy(G, weight='weight')
+    if onlyuse == "all":
+        # p = nx.floyd_warshall_numpy(G, weight='weight')
         allowed_indexes = range(np.size(m[0]))
     else:
-        allowed_indexes = [i for i, x in enumerate(labels) if x in np.char.strip(onlyuse.split(','))]
+        allowed_indexes = [i for i, x in enumerate(labels) if x in np.char.strip(onlyuse.split(","))]
 
     p, change = hf.__floydwarshall_constrained(m, allowed_indexes)
-    results = np.c_[list(G.nodes), p, np.repeat(' | ', np.size(m[0])), change]
-    headers = np.hstack((list(G.nodes), [' | '], list(G.nodes)))
+    results = np.c_[list(G.nodes), p, np.repeat(" | ", np.size(m[0])), change]
+    headers = np.hstack((list(G.nodes), [" | "], list(G.nodes)))
     table = [tabulate(results, headers=headers, tablefmt="simple", stralign="center")]
     click.echo("\n".join(table))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.argument('source')
-@click.argument('target')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.argument("source")
+@click.argument("target")
 def maxflow(csvfile, source, target):
     """Finds maximum flow based on provided edge list."""
     G = hf.__get_graph_from_edge_list(csvfile)
-    maxflowval, transactions = nx.maximum_flow(G, source, target, capacity='weight')
+    maxflowval, transactions = nx.maximum_flow(G, source, target, capacity="weight")
     table = [tabulate(np.array(list(transactions.items())), headers=["node", "routed values"], tablefmt="simple")]
     click.echo("max flow: " + str(maxflowval) + "\n" + "\n".join(table))
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.argument('source')
-@click.argument('target')
-@click.option('--adjacency', '-adj', is_flag=True, help='csv input is adjacency matrix')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.argument("source")
+@click.argument("target")
+@click.option("--adjacency", "-adj", is_flag=True, help="csv input is adjacency matrix")
 def mincut(csvfile, source, target, adjacency):
     """Finds minimum s-t-cut based on provided edge list or adjacency matrix."""
     if adjacency:
         G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
-        cut_value, partition = nx.minimum_cut(G, source, target, capacity='weight')
+        cut_value, partition = nx.minimum_cut(G, source, target, capacity="weight")
     else:
         G = hf.__get_graph_from_edge_list(csvfile)
-        cut_value, partition = nx.minimum_cut(G, source, target, capacity='weight')
+        cut_value, partition = nx.minimum_cut(G, source, target, capacity="weight")
     results = []
     i = 0
     for p in list(partition):
@@ -868,14 +1017,11 @@ def mincut(csvfile, source, target, adjacency):
             if G.has_edge(p1_node, p2_node):
                 edge_cut_list.append((p1_node, p2_node))
     table = [tabulate(results, headers=["#", "partitions"], tablefmt="simple")]
-    click.echo('\n'.join(table) +
-               '\n\ncut edges: ' + str(edge_cut_list) +
-               '\ncut value: ' + str(cut_value))
+    click.echo("\n".join(table) + "\n\ncut edges: " + str(edge_cut_list) + "\ncut value: " + str(cut_value))
 
 
-
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
 def maxmatch(csvfile):
     """Maximum matchings of a bipartite graph based on provided adjacency matrix."""
     G, _, _ = hf.__get_graph_from_adjacency_matrix(csvfile)
@@ -884,23 +1030,23 @@ def maxmatch(csvfile):
     for m in list(matching):
         results.append([str(m[0]) + " - " + str(m[1])])
     table = [tabulate(results, headers=["matches"], tablefmt="simple")]
-    click.echo('\n'.join(table) + f'\n\nmaximum matches = {len(matching)}')
+    click.echo("\n".join(table) + f"\n\nmaximum matches = {len(matching)}")
 
 
-@main.command(help_group='Part 2b')
-@click.argument('csvfile', type=click.Path(exists=True))
-@click.argument('source')
-@click.argument('target')
+@main.command(help_group="Part 2b")
+@click.argument("csvfile", type=click.Path(exists=True))
+@click.argument("source")
+@click.argument("target")
 def mincostmaxflow(csvfile, source, target):
     """Returns a maximum s-t flow of minimum cost based on provided edge list with weights and costs."""
     G = hf.__get_graph_from_edge_list(csvfile)
-    flowDict = nx.max_flow_min_cost(G, source, target, capacity='weight', weight='cost')
-    mincost = nx.cost_of_flow(G, flowDict, weight='cost')
-    mincostFlowValue = sum((flowDict[u][target] for u in G.predecessors(target))) - sum((flowDict[target][v] for v in G.successors(target)))
+    flowDict = nx.max_flow_min_cost(G, source, target, capacity="weight", weight="cost")
+    mincost = nx.cost_of_flow(G, flowDict, weight="cost")
+    mincostFlowValue = sum((flowDict[u][target] for u in G.predecessors(target))) - sum(
+        (flowDict[target][v] for v in G.successors(target))
+    )
     table = [tabulate(np.array(list(flowDict.items())), headers=["node", "routed values"], tablefmt="simple")]
-    click.echo('\nmin cost: ' + str(mincost) +
-               '\nmax flow: ' + str(mincostFlowValue) + '\n' +
-               "\n".join(table))
+    click.echo("\nmin cost: " + str(mincost) + "\nmax flow: " + str(mincostFlowValue) + "\n" + "\n".join(table))
 
 
 if __name__ == "__main__":

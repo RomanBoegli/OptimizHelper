@@ -3,6 +3,7 @@ import sympy as sy
 from sympy.printing import pretty as sympy_pretty
 from fractions import Fraction
 
+
 def p(A, name: str = None, transpose=False):
     """pretty print numpy matrix"""
     A = sy.Matrix(np.array(A, ndmin=2))  # force 2d array
@@ -33,7 +34,7 @@ def ppT(A, name: str = None):
 
 
 def fraction_to_sum(f: Fraction) -> str:
-    res = str(f.numerator//f.denominator)
+    res = str(f.numerator // f.denominator)
     mod = f.numerator % f.denominator
     if mod != 0:
         res += f" + {mod}/{f.denominator}"

@@ -28,8 +28,7 @@ def ilp_relax(A, b, c, J_ge={}, J_le={}) -> (int, [float], [int]):
 
     # c=-c because scipy does minimization
     # res = scipy.optimize.linprog(c=-c, A_ub=A_prime, b_ub=b_prime, method="highs")
-    res = scipy.optimize.linprog(c=-c, A_ub=A_prime, b_ub=b_prime, bounds=None,
-                                 method="highs")
+    res = scipy.optimize.linprog(c=-c, A_ub=A_prime, b_ub=b_prime, bounds=None, method="highs")
     if res.status == 2:
         # infeasible
         return None, None, None
@@ -72,12 +71,12 @@ def knapsack_relax(A, b, c, J_ge={}, J_le={}) -> (int, [Fraction], [int]):
     return k, x_ub, x_lb
 
 
-def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True,
-                         graph_path=None):
+def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True, graph_path=None):
     """branch-and-bound algorithm for integer linear programming
 
     integer linear problem: max c^T * x, Ax <= b
     """
+
     class State:
         def __init__(self, step, r, k_next, J_le, J_ge, x_ub, x_lb):
             self.step: int = step
@@ -131,20 +130,19 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True,
         nonlocal step, r_global, z_lb_max, z_lb_max_r
         step += 1
         k, x_ub, x_lb = relax(A=A, b=b, c=c, J_ge=J_ge, J_le=J_le)
-        state = State(step=step, r=r, k_next=k, J_le=J_le, J_ge=J_ge, x_ub=x_ub,
-                      x_lb=x_lb)
+        state = State(step=step, r=r, k_next=k, J_le=J_le, J_ge=J_ge, x_ub=x_ub, x_lb=x_lb)
 
-        step_ = f'[{step}] r={r}'
-        global_update_ = ''
-        c_ = ''
-        x_ub_ = ''
-        z_ub_p_ = ''
-        x_lb_ = ''
-        z_lb_p_ = ''
-        stop_criteria = ''
+        step_ = f"[{step}] r={r}"
+        global_update_ = ""
+        c_ = ""
+        x_ub_ = ""
+        z_ub_p_ = ""
+        x_lb_ = ""
+        z_lb_p_ = ""
+        stop_criteria = ""
         if k is None:
             state.infeasible = True
-            stop_criteria = 'infeasible'
+            stop_criteria = "infeasible"
         else:
             z_ub = c.T @ x_ub
             z_lb = c.T @ x_lb if x_lb is not None else None
@@ -156,21 +154,21 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True,
                 z_lb_p_ = sy.nsimplify(z_lb, tolerance=1e-5, rational=True)
             if z_ub <= z_lb_max:
                 state.dominance = True
-                stop_criteria = 'dominance'
+                stop_criteria = "dominance"
             elif z_lb is not None and (z_lb > z_lb_max):
                 z_lb_max = z_lb
                 z_lb_max_r = r
                 state.update = True
-                global_update_ = f'[{state.step}]: z_lb = {z_lb_max}'
+                global_update_ = f"[{state.step}]: z_lb = {z_lb_max}"
             if z_ub == z_lb:
                 state.optimal = True
-                stop_criteria = 'optimal'
+                stop_criteria = "optimal"
 
         results.append([step_, c_, x_ub_, z_ub_p_, x_lb_, z_lb_p_, global_update_, stop_criteria])
 
-        graph.add_node(pydot.Node(r, label=str(state), shape="box",
-                                  fontname="monospace", style="filled",
-                                  fillcolor="white"))
+        graph.add_node(
+            pydot.Node(r, label=str(state), shape="box", fontname="monospace", style="filled", fillcolor="white")
+        )
 
         if state.infeasible or state.dominance or state.optimal:
             return results
@@ -188,17 +186,21 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True,
 
         # depth first
         if round_up_first:
-            traverse(r_r, J_le,            {**J_ge, k: ge}, results)
+            traverse(r_r, J_le, {**J_ge, k: ge}, results)
             traverse(r_l, {**J_le, k: le}, J_ge, results)
         else:
             traverse(r_l, {**J_le, k: le}, J_ge, results)
-            traverse(r_r, J_le,            {**J_ge, k: ge}, results)
+            traverse(r_r, J_le, {**J_ge, k: ge}, results)
 
     allresults = []
     r = traverse(0, J_le={}, J_ge={}, results=allresults)
-    table = [tabulate(allresults,
-                      headers=['step', 'c', 'x_ub', 'z_ub', 'x_lb' , 'z_lb', 'global update', 'stop criteria'],
-                      tablefmt="fancy_grid")]
+    table = [
+        tabulate(
+            allresults,
+            headers=["step", "c", "x_ub", "z_ub", "x_lb", "z_lb", "global update", "stop criteria"],
+            tablefmt="fancy_grid",
+        )
+    ]
 
     graph.get_node(str(z_lb_max_r))[0].set_fillcolor("yellow2")
 
