@@ -1,0 +1,39 @@
+name: Audit Report
+description: Run pip-audit, emit warning annotations, write step summary, and upload the report as an artifact.
+
+runs:
+  using: composite
+  steps:
+    - name: Scan dependencies for vulnerabilities
+      shell: bash
+      run: |
+        pip install pip-audit
+        pip-audit -r requirements.txt -f json -o audit-report.json || true
+        python3 - <<'EOF'
+        import json, os
+        with open('audit-report.json') as f:
+            data = json.load(f)
+        vulns = [
+            (d['name'], d['version'], v['id'], ', '.join(v.get('fix_versions', [])) or 'none')
+            for d in data.get('dependencies', [])
+            for v in d.get('vulns', [])
+        ]
+        if vulns:
+            for name, ver, vid, fixes in vulns:
+                print(f'::warning::{name}=={ver} · {vid} · fix: {fixes}')
+            with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+                f.write('## ⚠️ Dependency Vulnerabilities\n\n')
+                f.write('| Package | Version | ID | Fix Versions |\n')
+                f.write('|---|---|---|---|\n')
+                for name, ver, vid, fixes in vulns:
+                    f.write(f'| {name} | {ver} | {vid} | {fixes} |\n')
+        else:
+            print('No known vulnerabilities found.')
+        EOF
+
+    - name: Upload vulnerability report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: vulnerability-report
+        path: audit-report.json
