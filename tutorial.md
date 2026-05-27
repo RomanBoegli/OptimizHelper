@@ -182,14 +182,12 @@ Job:
         with:
           python-version: '3.10'
 
-      - name: Generate SBOM
-        id: sbom
-        uses: anchore/sbom-action@v0
-        with:
-          format: cyclonedx-json
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Copy SBOM to workspace
-        run: cp "${{ steps.sbom.outputs.sbom-path }}" sbom.json
+      - name: Generate SBOM
+        run: syft . -o cyclonedx-json=sbom.json
 
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v4
