@@ -132,6 +132,7 @@ The basic `pip-audit` step from [Step 3](#step-3--sbom-generation) prints findin
 - **Annotations** — `::warning::` lines printed to stdout appear as yellow flags on the job summary and file view.
 - **Step summary** — writing markdown to `$GITHUB_STEP_SUMMARY` renders a formatted table directly on the run page. See example below:
 <img src="example-report.png" width="400" alt="Example vulnerability report">
+
 - **Downloadable artifact** — uploading the raw JSON report lets stakeholders retrieve it outside the UI.
 
 **Your task:** Replace the plain `pip-audit` run with a step that:
