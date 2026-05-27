@@ -63,19 +63,22 @@ Push and verify both `lint` and `test` are green.
 
 ---
 
-## Step 3 — SBOM & Vulnerability Scan
+## Step 3 — SBOM Generation
 
-**What & why:** An SBOM (Software Bill of Materials) is a machine-readable inventory of every library your software depends on. Scanning it against a CVE database lets you catch known vulnerabilities in your dependencies before they reach production.
+**What & why:** An SBOM (Software Bill of Materials) is a machine-readable inventory of every library your software depends on. It is a deliverable in itself — a consumer of your software can use it to audit what they are running. It also serves as input for vulnerability scanners (see Extension A).
 
-**Tools:**
-- [anchore/sbom-action](https://github.com/anchore/sbom-action) — generates the SBOM (no extra tooling needed, just a `uses:` line)
-- [anchore/scan-action](https://github.com/anchore/scan-action) — scans the SBOM for CVEs using [Grype](https://github.com/anchore/grype)
+**Tool:** [Syft](https://github.com/anchore/syft) — generates SBOMs in various formats. Install it via its install script and run with `syft . -o cyclonedx-json=sbom.json` to produce a CycloneDX JSON file.
 
-**Your task:** Add a job named `sbom` that generates a CycloneDX JSON SBOM, scans it, and uploads it as a pipeline artifact so it can be downloaded from the Actions UI. It should only start after `test` has passed.
+**Your task:** Add a job named `sbom` that:
+1. installs Syft and generates `sbom.json`
+2. uploads `sbom.json` as a pipeline artifact
+3. runs [pip-audit](https://pypi.org/project/pip-audit/) against `requirements.txt` as a quick Python-specific dependency scan
 
-> The dependencies in `requirements.txt` are pinned to 2022 versions and likely have known CVEs. Neither the SBOM scan nor the pip-audit scan should block the pipeline — use `fail-build: false` and `continue-on-error: true` so findings are visible in the log without stopping the build. This makes for a great live discussion about dependency hygiene.
+It should only start after `test` has passed.
 
-Push, open **Actions → your run → Artifacts**, and download the generated SBOM to see what it contains.
+> The dependencies in `requirements.txt` are pinned to 2022 versions and will have known [CVEs (Common Vulnerabilities and Exposures)](https://de.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures). The pip-audit scan should not block the pipeline — use `continue-on-error: true` so findings appear in the log without stopping the build. This makes for a great live discussion about dependency hygiene.
+
+Push, open **Actions → your run → Artifacts**, and download the generated SBOM to inspect what it contains.
 
 ---
 
@@ -108,6 +111,36 @@ Push, then go to **Actions → your run → Artifacts** and download the binary.
 
 ---
 
+## Extension A — Scan the SBOM with Grype
+
+After Step 3 the SBOM exists as a downloadable artifact, but nothing in the pipeline actually reads it — it is generated and immediately shelved. This extension closes that gap.
+
+The SBOM can be fed directly into a CVE scanner that checks every component against a live vulnerability database.
+
+**Tool:** [Grype](https://github.com/anchore/grype) — a vulnerability scanner that accepts a Syft SBOM as direct input. Install it via its install script and scan with `grype sbom:sbom.json`. Always run `grype db update` first — Grype ships with a bundled CVE database and refuses to scan if it is more than 5 days old.
+
+**Your task:** Add two steps to the `sbom` job (after the artifact upload):
+1. install Grype via its install script
+2. update the CVE database and scan `sbom.json`, using `--fail-on medium` to mark the step red on any medium-or-above finding — but keep `continue-on-error: true` so the pipeline still proceeds
+
+---
+
+## Extension B — Structured Vulnerability Reporting
+
+The basic pip-audit step prints findings to the log. GitHub Actions supports richer reporting:
+
+- **Annotations** — `::warning::` lines printed to stdout appear as yellow flags on the job summary and file view.
+- **Step summary** — writing markdown to `$GITHUB_STEP_SUMMARY` renders a formatted table directly on the run page.
+- **Downloadable artifact** — uploading the raw JSON report lets stakeholders retrieve it outside the UI.
+
+**Your task:** Replace the plain `pip-audit` run with a step that:
+1. runs pip-audit with `-f json -o audit-report.json` to save results as JSON
+2. parses the JSON with an inline Python script and prints `::warning::` for each vulnerability
+3. writes a markdown table to `$GITHUB_STEP_SUMMARY`
+4. uploads `audit-report.json` as an artifact using `actions/upload-artifact`
+
+---
+
 ---
 
 ## Possible Solutions
@@ -134,8 +167,8 @@ Job:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: pip install ruff
@@ -153,8 +186,8 @@ Job:
     runs-on: ubuntu-latest
     needs: [lint]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install system dependencies
@@ -168,7 +201,7 @@ Job:
 </details>
 
 <details>
-<summary><strong>Step 3 — SBOM & Vulnerability Scan</strong></summary>
+<summary><strong>Step 3 — SBOM Generation</strong></summary>
 
 ```yaml
   sbom:
@@ -176,9 +209,9 @@ Job:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
 
@@ -190,17 +223,10 @@ Job:
         run: syft . -o cyclonedx-json=sbom.json
 
       - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.json
-
-      - name: Scan SBOM for vulnerabilities
-        uses: anchore/scan-action@v3
-        with:
-          sbom: sbom.json
-          fail-build: false
-        continue-on-error: true
 
       - name: Scan dependencies for vulnerabilities
         run: |
@@ -208,8 +234,6 @@ Job:
           pip-audit -r requirements.txt
         continue-on-error: true
 ```
-
-`anchore/scan-action` attempts a CVE scan of the SBOM but won't fail the build — it can be brittle due to database caching issues, so `continue-on-error: true` is a safety net. `pip-audit` then does a reliable scan directly against `requirements.txt`. Both steps report findings in the log without blocking the pipeline — the old pinned dependencies have known CVEs, which makes for a great live discussion about dependency hygiene.
 
 </details>
 
@@ -222,8 +246,8 @@ Job:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: pip install bandit
@@ -244,8 +268,8 @@ Job:
     runs-on: ubuntu-latest
     needs: [lint, test, sbom, security]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install dependencies
@@ -253,7 +277,7 @@ Job:
       - name: Build standalone binary
         run: pyinstaller --onefile main.py --name optimizhelper
       - name: Upload binary as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: optimizhelper-linux
           path: dist/optimizhelper
@@ -262,7 +286,73 @@ Job:
 </details>
 
 <details>
-<summary><strong>Complete <code>pipeline.yml</code></strong></summary>
+<summary><strong>Extension A — Scan the SBOM with Grype</strong></summary>
+
+Add these two steps to the `sbom` job, after the artifact upload and before pip-audit:
+
+```yaml
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan SBOM for vulnerabilities
+        run: |
+          grype db update
+          grype sbom:sbom.json --fail-on medium
+        continue-on-error: true
+```
+
+`grype db update` ensures the CVE database is fresh — without it, Grype refuses to scan if its bundled database is older than 5 days. `--fail-on medium` marks the step red when medium-or-above CVEs are found; `continue-on-error: true` keeps the pipeline running regardless so findings are visible without blocking delivery.
+
+</details>
+
+<details>
+<summary><strong>Extension B — Structured Vulnerability Reporting</strong></summary>
+
+Replace the plain `pip-audit` step with this:
+
+```yaml
+      - name: Scan dependencies for vulnerabilities
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt -f json -o audit-report.json || true
+          python3 - <<'EOF'
+          import json, os
+          with open('audit-report.json') as f:
+              data = json.load(f)
+          vulns = [
+              (d['name'], d['version'], v['id'], ', '.join(v.get('fix_versions', [])) or 'none')
+              for d in data.get('dependencies', [])
+              for v in d.get('vulns', [])
+          ]
+          if vulns:
+              for name, ver, vid, fixes in vulns:
+                  print(f'::warning::{name}=={ver} · {vid} · fix: {fixes}')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+                  f.write('## ⚠️ Dependency Vulnerabilities\n\n')
+                  f.write('| Package | Version | ID | Fix Versions |\n')
+                  f.write('|---|---|---|---|\n')
+                  for name, ver, vid, fixes in vulns:
+                      f.write(f'| {name} | {ver} | {vid} | {fixes} |\n')
+          else:
+              print('No known vulnerabilities found.')
+          EOF
+        continue-on-error: true
+
+      - name: Upload vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulnerability-report
+          path: audit-report.json
+```
+
+`-f json -o audit-report.json` saves machine-readable output instead of printing to the console. The inline Python script reads it, emits `::warning::` annotations (visible as yellow flags in the GitHub UI), and writes a formatted table to the job summary page. `|| true` prevents a non-zero exit from pip-audit reaching the Python parser before it runs. `if: always()` on the upload ensures the artifact is saved even when the scan step exits with warnings.
+
+</details>
+
+<details>
+<summary><strong>Complete <code>pipeline.yml</code> (Steps 1–5 + Extensions A & B)</strong></summary>
 
 ```yaml
 name: CI/CD Pipeline
@@ -279,8 +369,8 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: pip install ruff
@@ -291,8 +381,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install system dependencies
@@ -307,38 +397,76 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          format: cyclonedx-json
+        run: syft . -o cyclonedx-json=sbom.json
+
       - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
-          path: OptimizHelper-sbom.cyclonedx.json
+          path: sbom.json
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Scan SBOM for vulnerabilities
-        uses: anchore/scan-action@v3
-        with:
-          sbom: OptimizHelper-sbom.cyclonedx.json
-          fail-build: false
+        run: |
+          grype db update
+          grype sbom:sbom.json --fail-on medium
         continue-on-error: true
+
       - name: Scan dependencies for vulnerabilities
         run: |
           pip install pip-audit
-          pip-audit -r requirements.txt
+          pip-audit -r requirements.txt -f json -o audit-report.json || true
+          python3 - <<'EOF'
+          import json, os
+          with open('audit-report.json') as f:
+              data = json.load(f)
+          vulns = [
+              (d['name'], d['version'], v['id'], ', '.join(v.get('fix_versions', [])) or 'none')
+              for d in data.get('dependencies', [])
+              for v in d.get('vulns', [])
+          ]
+          if vulns:
+              for name, ver, vid, fixes in vulns:
+                  print(f'::warning::{name}=={ver} · {vid} · fix: {fixes}')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+                  f.write('## ⚠️ Dependency Vulnerabilities\n\n')
+                  f.write('| Package | Version | ID | Fix Versions |\n')
+                  f.write('|---|---|---|---|\n')
+                  for name, ver, vid, fixes in vulns:
+                      f.write(f'| {name} | {ver} | {vid} | {fixes} |\n')
+          else:
+              print('No known vulnerabilities found.')
+          EOF
         continue-on-error: true
+
+      - name: Upload vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vulnerability-report
+          path: audit-report.json
 
   security:
     name: Static Security Scan
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: pip install bandit
@@ -350,8 +478,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test, sbom, security]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install dependencies
@@ -359,7 +487,7 @@ jobs:
       - name: Build standalone binary
         run: pyinstaller --onefile main.py --name optimizhelper
       - name: Upload binary as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: optimizhelper-linux
           path: dist/optimizhelper
