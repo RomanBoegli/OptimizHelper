@@ -113,7 +113,7 @@ Push, then go to **Actions → your run → Artifacts** and download the binary.
 
 ## Extension A — Scan the SBOM with Grype
 
-After Step 3 the SBOM exists as a downloadable artifact, but nothing in the pipeline actually reads it — it is generated and immediately shelved. This extension closes that gap.
+After [Step 3](#step-3--sbom-generation) the SBOM exists as a downloadable artifact, but nothing in the pipeline actually reads it — it is generated and immediately shelved. This extension closes that gap.
 
 The SBOM can be fed directly into a CVE scanner that checks every component against a live vulnerability database.
 
@@ -127,10 +127,11 @@ The SBOM can be fed directly into a CVE scanner that checks every component agai
 
 ## Extension B — Structured Vulnerability Reporting
 
-The basic pip-audit step prints findings to the log. GitHub Actions supports richer reporting:
+The basic `pip-audit` step from [Step 3](#step-3--sbom-generation) prints findings to the log. GitHub Actions supports richer reporting:
 
 - **Annotations** — `::warning::` lines printed to stdout appear as yellow flags on the job summary and file view.
-- **Step summary** — writing markdown to `$GITHUB_STEP_SUMMARY` renders a formatted table directly on the run page.
+- **Step summary** — writing markdown to `$GITHUB_STEP_SUMMARY` renders a formatted table directly on the run page. See example below:
+![Example vulnerability report](example-report.png)
 - **Downloadable artifact** — uploading the raw JSON report lets stakeholders retrieve it outside the UI.
 
 **Your task:** Replace the plain `pip-audit` run with a step that:
@@ -139,9 +140,27 @@ The basic pip-audit step prints findings to the log. GitHub Actions supports ric
 3. writes a markdown table to `$GITHUB_STEP_SUMMARY`
 4. uploads `audit-report.json` as an artifact using `actions/upload-artifact`
 
----
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
 
----
+# 🚨🚨 SOLUTION BELOW 🚨🚨
+
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+
 
 ## Possible Solutions
 
@@ -373,7 +392,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - run: pip install ruff
+      - run: pip install -r requirements.txt
       - run: ruff check .
 
   test:
