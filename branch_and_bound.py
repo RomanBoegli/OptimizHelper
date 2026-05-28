@@ -193,6 +193,7 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True, graph_pa
             traverse(r_r, J_le, {**J_ge, k: ge}, results)
 
     allresults = []
+    traverse(0, J_le={}, J_ge={}, results=allresults)
     table = [
         tabulate(
             allresults,
