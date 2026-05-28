@@ -17,7 +17,7 @@ A tiny command line interface tool for solving (non)integer & network optimizati
    ```
 3. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt -r requirements-dev.txt
    ```
 4. You're ready to go. Run commands with `python3 main.py ...` while the venv is active.
 
