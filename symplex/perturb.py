@@ -2,9 +2,9 @@ from sympy import Rational
 from symplex.utils import *
 
 
-def pertubation_vector(perm: Iterable[int], eps):
-    """
-    Provided a sufficiently small epsilon returns a pertubation vector
+def perturbation_vector(perm: Iterable[int], eps):
+    r"""
+    Provided a sufficiently small epsilon returns a perturbation vector
     s.t. (A, b+e(\epsilon)) is in general position
     :param: permutation of m constraints, usually `range(m)`
     :param eps:
@@ -15,7 +15,7 @@ def pertubation_vector(perm: Iterable[int], eps):
 
 def perturbed_polygon(A: Matrix, b: Matrix, eps=Rational(1, 128)):
     m = A.shape[0]
-    return A, b + pertubation_vector(range(m), eps)
+    return A, b + perturbation_vector(range(m), eps)
 
 
 def v_star_from_perturbed_polygon(A: Matrix, b: Matrix, b_pert: Matrix, v_pert: Matrix):

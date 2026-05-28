@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest symplex/test.py -W error::DeprecationWarning)"
+    ]
+  }
+}

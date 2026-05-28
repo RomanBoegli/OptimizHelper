@@ -92,7 +92,7 @@ def __get_graph_from_adjacency_matrix(csvfile, filling_values=None, isDirected=F
 
 
 def __get_graph_from_edge_list(csvfile, directed=True):
-    xs = np.genfromtxt(csvfile, delimiter=",", dtype=None, names=True)
+    xs = np.genfromtxt(csvfile, delimiter=",", dtype=None, names=True, encoding=None)
     edges = []
     for x in xs:
         fnode = x[0]

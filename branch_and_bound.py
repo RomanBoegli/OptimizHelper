@@ -118,7 +118,7 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True, graph_pa
                 out.append("global update")  #: {z_lb}")
             out = "\n".join(out) + "\n"
             # \l is graphviz' new line and left align escape sequence
-            return out.replace("\n", "\l")
+            return out.replace("\n", "\\l")
 
     step = 0
     r_global = 0
