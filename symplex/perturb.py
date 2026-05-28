@@ -10,17 +10,17 @@ def pertubation_vector(perm: Iterable[int], eps):
     :param eps:
     :return: e(\epsilon)
     """
-    return Matrix([eps**(i+1) for i in perm])
+    return Matrix([eps ** (i + 1) for i in perm])
 
 
 def perturbed_polygon(A: Matrix, b: Matrix, eps=Rational(1, 128)):
     m = A.shape[0]
-    return A, b+pertubation_vector(range(m), eps)
+    return A, b + pertubation_vector(range(m), eps)
 
 
 def v_star_from_perturbed_polygon(A: Matrix, b: Matrix, b_pert: Matrix, v_pert: Matrix):
     I_pert = active_constraints(v_pert, A, b_pert)
-    v_star = (sub_matrix(A, I_pert)**-1)*sub_matrix(b, I_pert)
+    v_star = (sub_matrix(A, I_pert) ** -1) * sub_matrix(b, I_pert)
     return v_star
 
 
@@ -30,20 +30,22 @@ def permute(permutation: Iterable[int], v: List[int]):
 
 def _delta(i: int, j: int, A: Matrix, b: Matrix, v: Matrix, B: List[int], s: Matrix, mA_Bm1: Matrix):
     if j == -1:
-        return b[i]-(A[i,:]*v)[0]
+        return b[i] - (A[i, :] * v)[0]
     if j == i:
         return 1
     if j in B:
-        return (A[i,:]*mA_Bm1)[B.index(j)]
+        return (A[i, :] * mA_Bm1)[B.index(j)]
     return 0
 
 
-def delta(i: int, A: Matrix, b: Matrix, v: Matrix, B: Set[int], s: Matrix, permutation: Iterable[int] = None, mA_Bm1 = None):
+def delta(
+    i: int, A: Matrix, b: Matrix, v: Matrix, B: Set[int], s: Matrix, permutation: Iterable[int] = None, mA_Bm1=None
+):
     m = A.shape[0]
     if permutation is None:
         permutation = range(m)
     if mA_Bm1 is None:
-        mA_Bm1 = -sub_matrix(A, B)**-1
+        mA_Bm1 = -(sub_matrix(A, B) ** -1)
     B_sorted = sorted(list(B))
     d_0 = _delta(i, -1, A, b, v, B_sorted, s, mA_Bm1)
     d_c = [_delta(i, j, A, b, v, B_sorted, s, mA_Bm1) for j in range(m)]
@@ -57,23 +59,18 @@ def _eta(i: int, j: int, A: Matrix, B: List[int], mA_Bm1: Matrix):
     if j == i:
         return 1
     if j in B:
-        return (A[i,:]*mA_Bm1)[B.index(j)]
+        return (A[i, :] * mA_Bm1)[B.index(j)]
     return 0
 
 
-def y(i: int, A: Matrix, B: Set[int], permutation: Iterable[int] = None, mA_Bm1 = None):
+def y(i: int, A: Matrix, B: Set[int], permutation: Iterable[int] = None, mA_Bm1=None):
     m = A.shape[0]
     if permutation is None:
         permutation = range(m)
     if mA_Bm1 is None:
-        mA_Bm1 = -sub_matrix(A, B)**-1
+        mA_Bm1 = -(sub_matrix(A, B) ** -1)
     B_sorted = sorted(list(B))
-    return Matrix(
-        permute(
-            permutation,
-            [_eta(i, j, A, B_sorted, mA_Bm1) for j in range(m)]
-        )
-    )
+    return Matrix(permute(permutation, [_eta(i, j, A, B_sorted, mA_Bm1) for j in range(m)]))
 
 
 def lexfeasible(v: Matrix, A: Matrix, b: Matrix, B: Set[int], permutation: Iterable[int]):
@@ -81,7 +78,7 @@ def lexfeasible(v: Matrix, A: Matrix, b: Matrix, B: Set[int], permutation: Itera
     aka epsilon-compatible
     """
     m = A.shape[0]
-    zero = Matrix(m*[0])
+    zero = Matrix(m * [0])
     for i in set(active_constraints(v, A, b)) - B:
         if lexcmp(y(i, A, B, permutation), zero) != 1:
             return False

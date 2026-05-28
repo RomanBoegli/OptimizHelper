@@ -10,7 +10,7 @@ def active_constraints(v: Matrix, A: Matrix, b: Matrix):
     I = []
     m = b.shape[0]
     for i in range(m):
-        if (A[i,:]*v)[0] == b[i]:
+        if (A[i, :] * v)[0] == b[i]:
             I.append(i)
     return I
 
@@ -39,27 +39,27 @@ def vertices(A: Matrix, b: Matrix):
     for potential_basis in combinations(range(m), n):
         A_B = sub_matrix(A, potential_basis)
         if A_B.rank() == n:
-            v: Matrix = (A_B**-1)*sub_matrix(b, potential_basis)
+            v: Matrix = (A_B**-1) * sub_matrix(b, potential_basis)
             if is_contained(v, A, b):
                 vs.add(v.as_immutable())
     return vs
 
 
 def is_basis(v: Matrix, A: Matrix, b: Matrix, B: Set[int]):
-    A_B = Matrix([A[i,:] for i in B])
+    A_B = Matrix([A[i, :] for i in B])
     b_B = Matrix([b[i] for i in B])
     if A_B.rank() != v.shape[0]:
         _LOGGER.debug("Rank of A is too low")
         return False
-    if (A_B**-1)*b_B != v:
+    if (A_B**-1) * b_B != v:
         _LOGGER.debug("A is not active in all of v")
         return False
     return True
 
 
-def is_contained(v: Matrix, A: Matrix, b:Matrix):
+def is_contained(v: Matrix, A: Matrix, b: Matrix):
     m = b.shape[0]
-    Av = A*v
+    Av = A * v
     for i in range(m):
         if Av[i] > b[i]:
             _LOGGER.debug(f"Point not in Polygon, constraint {i} violated")
@@ -67,7 +67,7 @@ def is_contained(v: Matrix, A: Matrix, b:Matrix):
     return True
 
 
-def is_vertex(v: Matrix, A:Matrix, b: Matrix):
+def is_vertex(v: Matrix, A: Matrix, b: Matrix):
     try:
         # check whether there are any bases for this vertex
         next(iter(bases(v, A, b)))
@@ -94,7 +94,7 @@ def is_generic_rank(A: Matrix, b: Matrix):
     cf Theorem 3.4.5
     """
     m, n = A.shape
-    for I in combinations(range(m), n+1):
+    for I in combinations(range(m), n + 1):
         A_I = sub_matrix(A, I)
         b_I = sub_matrix(b, I)
         if is_feasible_eq(A_I, b_I):
@@ -112,31 +112,33 @@ def lineality_space(A: Matrix, b: Matrix):
 
 
 def P_without(A: Matrix, b: Matrix, B: List[Matrix]):
-    """ Fix the space spanned by the vectors in B to 0 """
+    """Fix the space spanned by the vectors in B to 0"""
     if len(B) == 0:
         return A, b
     B_rows = len(B)
     B_mat = Matrix(B).transpose()
-    A_new = BlockMatrix([
-        [A],
-        [B_mat],
-        [-B_mat],
-    ]).as_explicit()
-    b_new = Matrix(list(b) + 2*B_rows*[0])
+    A_new = BlockMatrix(
+        [
+            [A],
+            [B_mat],
+            [-B_mat],
+        ]
+    ).as_explicit()
+    b_new = Matrix(list(b) + 2 * B_rows * [0])
     return A_new, b_new
 
 
-def extreme_rays(A: Matrix, b: Matrix, V: Optional[Iterable[Matrix]]=None):
+def extreme_rays(A: Matrix, b: Matrix, V: Optional[Iterable[Matrix]] = None):
     m, n = A.shape
     rays = set()
     if V is None:
         V = vertices(A, b)
     for v in V:
         for B in bases(v, A, b):
-            mA_Bm1 = -sub_matrix(A,B)**-1
-            support_cone_rays = [mA_Bm1[:,i] for i in range(n)]  # type: List[Matrix]
+            mA_Bm1 = -(sub_matrix(A, B) ** -1)
+            support_cone_rays = [mA_Bm1[:, i] for i in range(n)]  # type: List[Matrix]
             for s in support_cone_rays:
-                As = A*s
+                As = A * s
                 if all(As[i] <= 0 for i in range(m)):
                     rays.add(s.as_immutable())
     return rays
@@ -158,24 +160,26 @@ def H_representation(V: Iterable[Matrix], S: Iterable[Matrix]):
     n = A_1.shape[0]
     p = A_1.shape[1]
     q = A_2.shape[1]
-    A_Q = BlockMatrix([
-        [Identity(n), -A_1, -A_2],
-        [-Identity(n), A_1, A_2],
-        [Matrix([n*[0]]), Matrix([p*[1]]), Matrix([q*[0]])],
-        [ZeroMatrix(p, n), -Identity(p), ZeroMatrix(p, q)],
-        [ZeroMatrix(q, n), ZeroMatrix(q, p), -Identity(q)]
-    ]).as_explicit()
-    b_Q = Matrix(2*n*[0] + [1] + p*[0] + q*[0])
+    A_Q = BlockMatrix(
+        [
+            [Identity(n), -A_1, -A_2],
+            [-Identity(n), A_1, A_2],
+            [Matrix([n * [0]]), Matrix([p * [1]]), Matrix([q * [0]])],
+            [ZeroMatrix(p, n), -Identity(p), ZeroMatrix(p, q)],
+            [ZeroMatrix(q, n), ZeroMatrix(q, p), -Identity(q)],
+        ]
+    ).as_explicit()
+    b_Q = Matrix(2 * n * [0] + [1] + p * [0] + q * [0])
     return A_Q, b_Q
 
 
 def klee_minty(n: int, µ):
-    A = ZeroMatrix(2*n, n).as_mutable()
-    A[0,0] = 1
-    A[1,0] = -1
+    A = ZeroMatrix(2 * n, n).as_mutable()
+    A[0, 0] = 1
+    A[1, 0] = -1
     for i in range(1, n):
-        A[2*i,i-1:i+1] = [[µ, 1]]
-        A[2*i+1,i-1:i+1] = [[µ, -1]]
-    b = Matrix(2*n*[1])
-    c = Matrix((n-1)*[0] + [1])
+        A[2 * i, i - 1 : i + 1] = [[µ, 1]]
+        A[2 * i + 1, i - 1 : i + 1] = [[µ, -1]]
+    b = Matrix(2 * n * [1])
+    c = Matrix((n - 1) * [0] + [1])
     return A, b, c

@@ -8,7 +8,7 @@ import PIL
 import sympy as sy
 from tabulate import tabulate
 
-from util import p, fraction_to_sum
+from util import p
 
 
 def ilp_relax(A, b, c, J_ge={}, J_le={}) -> (int, [float], [int]):
@@ -193,7 +193,6 @@ def branch_and_bound_ilp(A, b, c, relax=ilp_relax, round_up_first=True, graph_pa
             traverse(r_r, J_le, {**J_ge, k: ge}, results)
 
     allresults = []
-    r = traverse(0, J_le={}, J_ge={}, results=allresults)
     table = [
         tabulate(
             allresults,

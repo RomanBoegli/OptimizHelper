@@ -11,6 +11,7 @@ class SimplexResult(Enum):
     """
     Possible outcomes of the simplex algorithm
     """
+
     OPTIMAL = "optimal"
     UNBOUNDED = "unbounded"
     INFEASIBLE = "infeasible"
@@ -25,12 +26,25 @@ def lex_pivot(permutation: Iterable[int] = None):
     """
     returns a lexicographical minimizing pivot rule for a given permutation
     """
-    def _lexmax_pivot(xs: List[int], A: Matrix, b: Matrix, v: Matrix, B: Set[int], s: Matrix, R: List[int], mA_Bm1: Matrix, *args, **kwargs):
+
+    def _lexmax_pivot(
+        xs: List[int],
+        A: Matrix,
+        b: Matrix,
+        v: Matrix,
+        B: Set[int],
+        s: Matrix,
+        R: List[int],
+        mA_Bm1: Matrix,
+        *args,
+        **kwargs,
+    ):
         ds = [delta(x, A, b, v, B, s, permutation, mA_Bm1) for x in R]
         for x, d in zip(R, ds):
             _LOGGER.debug(f"d_{x}: {list(d)}")
         _, chosen_in = lexmin(ds)
         return R[chosen_in]
+
     return _lexmax_pivot
 
 
@@ -38,8 +52,10 @@ def nth_pivot(index: int):
     """
     Returns a pivot rule that always returns the value at the nth position (0-indexed)
     """
+
     def _nth_pivot(xs: List[int], *args, **kwargs):
         return xs[index]
+
     return _nth_pivot
 
 
@@ -49,7 +65,7 @@ def max_scalar_pivot(xs: List[int], A: Matrix, v: Matrix, *args, **kwargs):
     NOTE this has neither been tested nor investigated thoroughly
     """
 
-    sp = [(A[i,:]*v)[0] for i in xs]
+    sp = [(A[i, :] * v)[0] for i in xs]
     max_i, max_sp = max(zip(xs, sp), key=lambda x: x[1])
     return max_i
 
@@ -66,7 +82,16 @@ class PivotRule(Enum):
         pass
 
 
-def simplex(A: Matrix, b: Matrix, c: Matrix, v: Matrix, B: Container[int], pivot_rule_p: PIVOT_RULE=PivotRule.MINIMAL(), pivot_rule_i: PIVOT_RULE=PivotRule.MINIMAL(), **kwargs):
+def simplex(
+    A: Matrix,
+    b: Matrix,
+    c: Matrix,
+    v: Matrix,
+    B: Container[int],
+    pivot_rule_p: PIVOT_RULE = PivotRule.MINIMAL(),
+    pivot_rule_i: PIVOT_RULE = PivotRule.MINIMAL(),
+    **kwargs,
+):
     """
     Performs simplex algorithm on given input
     Note that all constraints are 0-indexed (beware off-by-one errors)
@@ -90,22 +115,22 @@ def simplex(A: Matrix, b: Matrix, c: Matrix, v: Matrix, B: Container[int], pivot
 
         N = set(range(m)) - B
         AB = sub_matrix(A, sorted(list(B)))
-        mABm1 = -AB**-1
-        s = [mABm1[:,i] for i in range(n)]
+        mABm1 = -(AB**-1)
+        s = [mABm1[:, i] for i in range(n)]
 
         mABm1_mulc = mABm1.transpose() * c
-        if all(e <= 0 for e in mABm1_mulc[:]): # equivalent: all(c.transpose()*s[j] <= 0 for j in range(n)):
+        if all(e <= 0 for e in mABm1_mulc[:]):  # equivalent: all(c.transpose()*s[j] <= 0 for j in range(n)):
             # we have arrived at an optimal solution, check for uniqueness
             if all(e < 0 for e in mABm1_mulc[:]):
                 unique = True
             res = SimplexResult.OPTIMAL
             v_star = v
-            opt_val = (c.transpose()*v)[0]
+            opt_val = (c.transpose() * v)[0]
         else:
             # we can still improve along some edge
-            valid_p = [p for p in range(n) if (c.transpose()*s[p])[0] > 0]
+            valid_p = [p for p in range(n) if (c.transpose() * s[p])[0] > 0]
             p = pivot_rule_p(valid_p)
-            As = A*s[p]
+            As = A * s[p]
             R = [i for i in N if As[i] > 0]
             if len(R) == 0:
                 # the result in unbounded in the direction of the cost function
@@ -113,14 +138,14 @@ def simplex(A: Matrix, b: Matrix, c: Matrix, v: Matrix, B: Container[int], pivot
                 opt_val = inf
             else:
                 # we have found a constraint for improvement along which we can improve costs
-                Av = A*v
-                step_sizes = [(b[i] - Av[i])/As[i] for i in R]
+                Av = A * v
+                step_sizes = [(b[i] - Av[i]) / As[i] for i in R]
                 lam = min(step_sizes)
                 i_in_candidates = [i for i, s in zip(R, step_sizes) if s == lam]
                 i_in = pivot_rule_i(i_in_candidates, A=A, b=b, v=v, B=B, mA_Bm1=mABm1, s=s[p], R=R)
                 i_out = sorted(list(B))[p]
                 B = B - {i_out} | {i_in}
-                v = v + lam*s[p]
+                v = v + lam * s[p]
 
                 if B in visited_bases:
                     # Basis visited second time, detecting cycle and abort
@@ -144,19 +169,19 @@ def initial_vertex_polygon_dimensions(A: Matrix, b: Matrix, I: Set[int]):
     A_I = sub_matrix(A, I)
     assert A_I.rank() == n
     b_I = sub_matrix(b, I)
-    v = (A_I**-1)*b_I
-    J = set(i for i in range(m) if (A[i,:]*v)[0] > b[i])
+    v = (A_I**-1) * b_I
+    J = set(i for i in range(m) if (A[i, :] * v)[0] > b[i])
     k = len(J)
     A_entries = []
-    k_zeroes = k*[0]
-    n_zeroes = n*[0]
+    k_zeroes = k * [0]
+    n_zeroes = n * [0]
     for i in set(range(m)) - J:
-        A_i = list(A[i,:]) + k_zeroes
+        A_i = list(A[i, :]) + k_zeroes
         A_entries.append(A_i)
-    for i,j in enumerate(J):
+    for i, j in enumerate(J):
         k_spec = k_zeroes.copy()
         k_spec[i] = 1
-        A_i = list(A[j,:]) + k_spec
+        A_i = list(A[j, :]) + k_spec
         A_entries.append(A_i)
     for i in range(len(J)):
         k_spec = k_zeroes.copy()
@@ -171,10 +196,10 @@ def initial_vertex_polygon_dimensions(A: Matrix, b: Matrix, I: Set[int]):
     b_p = Matrix(b_entries)
 
     z_0 = list(v)
-    z_0.extend(b[i] - (A[i,:]*v)[0] for i in J)
+    z_0.extend(b[i] - (A[i, :] * v)[0] for i in J)
     z_0 = Matrix(z_0)
 
-    c = n_zeroes + k*[1]
+    c = n_zeroes + k * [1]
     c = Matrix(c)
 
     return A_p, b_p, c, z_0
@@ -207,16 +232,16 @@ def initial_vertex_polygon_cone(A: Matrix, b: Matrix):
     m, n = A.shape
     A_entries = []
     for i in range(m):
-        A_i = list(A[i,:]) + [-b[i]]
+        A_i = list(A[i, :]) + [-b[i]]
         A_entries.append(A_i)
-    A_entries.append(n*[0]+[-1])
-    A_entries.append(n*[0]+[1])
+    A_entries.append(n * [0] + [-1])
+    A_entries.append(n * [0] + [1])
     A_p = Matrix(A_entries)
 
-    b_p = Matrix((m+1)*[0] + [1])
+    b_p = Matrix((m + 1) * [0] + [1])
 
-    c_p = Matrix(n*[0] + [1])
-    v_0 = Matrix((n+1)*[0])
+    c_p = Matrix(n * [0] + [1])
+    v_0 = Matrix((n + 1) * [0])
     return A_p, b_p, c_p, v_0
 
 
@@ -261,28 +286,27 @@ def simplex_tableau_step(A: Matrix, b: Matrix, c: Matrix, B: Set[int], pivot_rul
     b_B = sub_matrix(b, B)
     A_B = sub_matrix(A, B)
     A_Bm1T = (A_B**-1).transpose()
-    A_Bm1TAT = A_Bm1T*A.transpose()
-    A_Bm1Tc = A_Bm1T*c
-    tableau = BlockMatrix([
-        [-b_B.transpose()*A_Bm1Tc, b.transpose()-b_B.transpose()*A_Bm1TAT],
-        [A_Bm1Tc, A_Bm1TAT]
-    ]).as_explicit()
+    A_Bm1TAT = A_Bm1T * A.transpose()
+    A_Bm1Tc = A_Bm1T * c
+    tableau = BlockMatrix(
+        [[-b_B.transpose() * A_Bm1Tc, b.transpose() - b_B.transpose() * A_Bm1TAT], [A_Bm1Tc, A_Bm1TAT]]
+    ).as_explicit()
     N = set(range(n)) - B
-    if all(tableau[0, j+1] >= 0 for j in N):
-        return SimplexResult.OPTIMAL, B, A_Bm1Tc, -tableau[0,0]
+    if all(tableau[0, j + 1] >= 0 for j in N):
+        return SimplexResult.OPTIMAL, B, A_Bm1Tc, -tableau[0, 0]
 
-    if any(tableau[0,j+1] < 0 and all(tableau[i+1,j+1] <= 0 for i in range(m)) for j in N):
+    if any(tableau[0, j + 1] < 0 and all(tableau[i + 1, j + 1] <= 0 for i in range(m)) for j in N):
         return SimplexResult.UNBOUNDED, None, None, inf
 
-    js = [j for j in N if tableau[0, j+1] < 0]
+    js = [j for j in N if tableau[0, j + 1] < 0]
     j = pivot_rule(js)
-    step_sizes = [(i, tableau[i+1,0]/tableau[i+1,j+1]) for i in range(m) if tableau[i+1, j+1] > 0]
+    step_sizes = [(i, tableau[i + 1, 0] / tableau[i + 1, j + 1]) for i in range(m) if tableau[i + 1, j + 1] > 0]
     lam = min(map(lambda x: x[1], step_sizes))
     B_slist = sorted(list(B))
     rs = [B_slist[i] for (i, s) in step_sizes if s == lam]
     r = pivot_rule(rs)
 
-    return None, B - {r} | {j}, A_Bm1Tc, -tableau[0,0]
+    return None, B - {r} | {j}, A_Bm1Tc, -tableau[0, 0]
 
 
 def solution_from_basis_solution(basis_solution: Matrix, B: List[int], dim: int):
@@ -290,7 +314,7 @@ def solution_from_basis_solution(basis_solution: Matrix, B: List[int], dim: int)
     construct the full solution from the optimal basis solution
     which is essentially just zero everywhere but in the basis variables
     """
-    full_vertex = dim*[0]
+    full_vertex = dim * [0]
     for b, v in zip(B, basis_solution):
         full_vertex[b] = v
     return Matrix(full_vertex)
@@ -320,14 +344,14 @@ def is_generic_feasibility(A: Matrix, b: Matrix, **kwargs):
     following the definition directly
     """
     m, n = A.shape
-    for I in combinations(range(m), n+1):
+    for I in combinations(range(m), n + 1):
         # check if A_I*x = b_I is infeasible
         # note the equality, making the use of block matrices useful
         res, _, _ = simplex_full(
             BlockMatrix([[sub_matrix(A, I)], [-sub_matrix(A, I)]]).as_explicit(),
             BlockMatrix([[sub_matrix(b, I)], [-sub_matrix(b, I)]]).as_explicit(),
-            Matrix(n*[0]),
-            **kwargs
+            Matrix(n * [0]),
+            **kwargs,
         )
         if res != SimplexResult.INFEASIBLE:
             _LOGGER.debug(f"Matrix A is not generic, index set {I} has result {res}")
@@ -357,11 +381,11 @@ def determine_feasible_vertex_kernel(A: Matrix, b: Matrix, c: Matrix, v: Matrix,
         if len(ker_AI_vk) == 0:
             # for empty matrices, an empty list is returned as nullspace so we choose any vector
             # which is in R^n
-            ker_AI_vk = [Matrix([1]+(n-1)*[0])]
+            ker_AI_vk = [Matrix([1] + (n - 1) * [0])]
         w = ker_AI_vk[0]
 
-        Aw = A*w
-        cw = c.transpose()*w
+        Aw = A * w
+        cw = c.transpose() * w
         if cw[0] < 0 or (cw[0] == 0 and all(Aw[i] <= 0 for i in range(m))):
             w = -w
         if all(Aw[i] <= 0 for i in range(m)):
@@ -371,7 +395,7 @@ def determine_feasible_vertex_kernel(A: Matrix, b: Matrix, c: Matrix, v: Matrix,
         Avk = A * vk
         step_sizes = list((b[i] - Avk[i]) / Aw[i] for i in range(m) if Aw[i] > 0)
         lam = min(step_sizes)
-        vk = vk + lam*w
+        vk = vk + lam * w
         I_vk = active_constraints(vk, A, b)
         AI_vk = sub_matrix(A, I_vk)
 
